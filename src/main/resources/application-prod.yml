@@ -50,3 +50,4 @@ logging:
   level:
     root: INFO
     com.elsalvador.coopac: INFO
+
