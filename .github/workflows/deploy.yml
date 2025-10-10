@@ -76,16 +76,17 @@ jobs:
           env_vars: |
             SPRING_PROFILES_ACTIVE=${{ env.SPRING_PROFILES_ACTIVE }}
             GCS_PROJECT_ID=${{ env.GCS_PROJECT_ID }}
-            JAVA_TOOL_OPTIONS=-Xmx512m -XX:+UseZGC -XX:+UnlockExperimentalVMOptions
+            JAVA_TOOL_OPTIONS=-Xmx1280m -XX:+UseZGC -XX:MaxRAMPercentage=75.0
           secrets: |
             DB_USERNAME=DB_USERNAME:latest
             DB_PASSWORD=DB_PASSWORD:latest
             GCS_BUCKET_NAME=GCS_BUCKET_NAME:latest
           flags: |
-            --memory=512Mi
-            --cpu=1
-            --concurrency=200
+            --memory=2Gi
+            --cpu=2
+            --concurrency=80
             --execution-environment=gen2
-            --timeout=120
+            --timeout=300
             --min-instances=0
             --max-instances=5
+            --startup-cpu-boost
