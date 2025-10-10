@@ -1,6 +1,7 @@
 package com.elsalvador.coopac.service.storage.impl;
 
 import com.elsalvador.coopac.service.storage.FileStorageService;
+import com.google.cloud.storage.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -12,9 +13,6 @@ import java.util.UUID;
 /**
  * Implementación de Google Cloud Storage para el servicio de almacenamiento de archivos.
  * Se activa cuando file.storage.type=gcs en application.yml
- *
- * NOTA: Para usar esta implementación, agregar la dependencia en build.gradle:
- * implementation 'com.google.cloud:google-cloud-storage:2.30.0'
  */
 @Service
 @Slf4j
@@ -30,16 +28,15 @@ public class GcsFileStorageServiceImpl implements FileStorageService {
     @Value("${file.storage.gcs.base-url:https://storage.googleapis.com}")
     private String baseUrl;
 
-    // Descomentar cuando se agregue la dependencia de GCS
-    // private final Storage storage;
+    private final Storage storage;
 
-    // @Autowired
-    // public GcsFileStorageServiceImpl() {
-    //     this.storage = StorageOptions.newBuilder()
-    //             .setProjectId(projectId)
-    //             .build()
-    //             .getService();
-    // }
+    public GcsFileStorageServiceImpl(@Value("${file.storage.gcs.project-id}") String projectId) {
+        this.storage = StorageOptions.newBuilder()
+                .setProjectId(projectId)
+                .build()
+                .getService();
+        log.info("GCS Storage inicializado para proyecto: {}", projectId);
+    }
 
     @Override
     public String storeFile(MultipartFile file, String folder) {
@@ -51,12 +48,12 @@ public class GcsFileStorageServiceImpl implements FileStorageService {
                 : "";
             String uniqueFileName = folder + "/" + UUID.randomUUID().toString() + extension;
 
-            // TODO: Implementar subida a GCS
-            // BlobId blobId = BlobId.of(bucketName, uniqueFileName);
-            // BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
-            //         .setContentType(file.getContentType())
-            //         .build();
-            // storage.create(blobInfo, file.getBytes());
+            // Subir archivo a GCS
+            BlobId blobId = BlobId.of(bucketName, uniqueFileName);
+            BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
+                    .setContentType(file.getContentType())
+                    .build();
+            storage.create(blobInfo, file.getBytes());
 
             log.info("Archivo almacenado en GCS: {}/{}", bucketName, uniqueFileName);
 
@@ -75,11 +72,15 @@ public class GcsFileStorageServiceImpl implements FileStorageService {
             // Extraer el nombre del blob de la URL
             String blobName = extractBlobNameFromUrl(fileUrl);
 
-            // TODO: Implementar eliminación en GCS
-            // BlobId blobId = BlobId.of(bucketName, blobName);
-            // boolean deleted = storage.delete(blobId);
+            // Eliminar archivo de GCS
+            BlobId blobId = BlobId.of(bucketName, blobName);
+            boolean deleted = storage.delete(blobId);
 
-            log.info("Archivo eliminado de GCS: {}", blobName);
+            if (deleted) {
+                log.info("Archivo eliminado de GCS: {}", blobName);
+            } else {
+                log.warn("No se pudo eliminar el archivo de GCS (posiblemente no existe): {}", blobName);
+            }
 
         } catch (Exception e) {
             log.error("Error al eliminar archivo de GCS", e);
@@ -98,12 +99,10 @@ public class GcsFileStorageServiceImpl implements FileStorageService {
         try {
             String blobName = extractBlobNameFromUrl(fileUrl);
 
-            // TODO: Implementar verificación en GCS
-            // BlobId blobId = BlobId.of(bucketName, blobName);
-            // Blob blob = storage.get(blobId);
-            // return blob != null && blob.exists();
-
-            return false;
+            // Verificar si el archivo existe en GCS
+            BlobId blobId = BlobId.of(bucketName, blobName);
+            Blob blob = storage.get(blobId);
+            return blob != null && blob.exists();
 
         } catch (Exception e) {
             log.error("Error al verificar existencia del archivo en GCS", e);
@@ -118,4 +117,3 @@ public class GcsFileStorageServiceImpl implements FileStorageService {
         return fileUrl.replace(prefix, "");
     }
 }
-

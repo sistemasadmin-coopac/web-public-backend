@@ -1,22 +1,23 @@
 spring:
-  # Database configuration (PostgreSQL)
   datasource:
-    url: jdbc:postgresql://34.9.66.96:5432/web-public-coopac-db
-    username: ${DB_USERNAME:user_coopac}
-    password: ${DB_PASSWORD:GeIFI.6mzV&u}N~<}
+    url: jdbc:postgresql://34.9.66.96:5432/web-public-coopac-db?sslmode=require
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
 
-# Server configuration
-server:
-  port: 8080
-
-# File storage configuration
 file:
   storage:
-    # Tipo de almacenamiento: 'local' para pruebas locales, 'gcs' para Google Cloud Storage
     type: gcs
-
-    # Configuración para Google Cloud Storage (cuando se implemente)
     gcs:
-      bucket-name: ${GCS_BUCKET_NAME:cac-elsalvador-files}
-      project-id: ${GCS_PROJECT_ID:your-project-id}
+      bucket-name: ${GCS_BUCKET_NAME}
+      project-id: ${GCS_PROJECT_ID:coopac-elsalvador-backend}
       base-url: https://storage.googleapis.com
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true

@@ -1,15 +1,19 @@
 spring:
   application:
-    name: cac-elsavaldor-backend
+    name: cac-elsalvador-backend
 
-  # Database configuration (PostgreSQL)
   datasource:
     url: jdbc:postgresql://localhost:5432/cac-elsalvador-web
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:1jerete1}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
 
-  # JPA configuration
   jpa:
     hibernate:
       ddl-auto: validate
@@ -19,35 +23,29 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
-  # SQL initialization
   sql:
     init:
       mode: never
 
-  # Multipart file upload configuration
   servlet:
     multipart:
       enabled: true
       max-file-size: 50MB
       max-request-size: 50MB
 
-# Server configuration
-server:
-  port: 8080
+  jackson:
+    time-zone: America/Lima
 
-# File storage configuration
+server:
+  port: ${PORT:8080}
+  shutdown: graceful
+  forward-headers-strategy: framework
+  compression:
+    enabled: true
+
 file:
   storage:
-    # Tipo de almacenamiento: 'local' para pruebas locales, 'gcs' para Google Cloud Storage
     type: local
-
-    # Configuración para almacenamiento local
     local:
       base-path: ./uploads
       base-url: http://localhost:8080/uploads
-
-    # Configuración para Google Cloud Storage (cuando se implemente)
-    gcs:
-      bucket-name: ${GCS_BUCKET_NAME:cac-elsalvador-files}
-      project-id: ${GCS_PROJECT_ID:your-project-id}
-      base-url: https://storage.googleapis.com

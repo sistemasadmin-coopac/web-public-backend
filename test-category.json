@@ -1,8 +1,0 @@
-{
-  "name": "Categoria de Prueba",
-  "description": "Esta es una categoria creada para pruebas",
-  "icon": "test-icon",
-  "displayOrder": 999,
-  "isActive": true
-}
-
