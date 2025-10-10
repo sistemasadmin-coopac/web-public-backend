@@ -88,5 +88,5 @@ jobs:
             --execution-environment=gen2
             --timeout=300
             --min-instances=0
-            --max-instances=5
-            --startup-cpu-boost
+            --max-instances=1
+            --cpu-boost
