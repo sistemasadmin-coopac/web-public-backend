@@ -3,6 +3,24 @@ spring:
     url: jdbc:postgresql://34.9.66.96:5432/web-public-coopac-db?sslmode=require
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 3
+      minimum-idle: 1
+      connection-timeout: 20000
+      initialization-fail-timeout: -1
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: America/Lima
+    open-in-view: false
+
+server:
+  port: ${PORT:8080}
+  shutdown: graceful
 
 file:
   storage:
@@ -21,3 +39,14 @@ management:
     health:
       probes:
         enabled: true
+      show-details: always
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+
+logging:
+  level:
+    root: INFO
+    com.elsalvador.coopac: INFO
