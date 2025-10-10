@@ -64,7 +64,7 @@ jobs:
           docker build -t "$IMAGE" .
           docker push "$IMAGE"
 
-      # ---------- Deploy Cloud Run (low-cost defaults) ----------
+      # ---------- Deploy Cloud Run ----------
       - name: Deploy to Cloud Run
         id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
@@ -76,7 +76,6 @@ jobs:
           env_vars: |
             SPRING_PROFILES_ACTIVE=${{ env.SPRING_PROFILES_ACTIVE }}
             GCS_PROJECT_ID=${{ env.GCS_PROJECT_ID }}
-            JAVA_TOOL_OPTIONS=-Xmx1280m -XX:+UseZGC -XX:MaxRAMPercentage=75.0
           secrets: |
             DB_USERNAME=DB_USERNAME:latest
             DB_PASSWORD=DB_PASSWORD:latest
@@ -90,3 +89,4 @@ jobs:
             --min-instances=0
             --max-instances=1
             --cpu-boost
+            --port=8080

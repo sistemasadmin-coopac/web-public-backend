@@ -1,10 +1,12 @@
-FROM gcr.io/distroless/java21-debian12
+FROM eclipse-temurin:21-jre-alpine
 
-ENV TZ=America/Lima
+ENV TZ=America/Lima \
+    JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:InitialRAMPercentage=50.0 -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Djava.security.egd=file:/dev/./urandom"
 
 WORKDIR /app
-# Copia el jar final (si generas varios, asegúrate que el boot-jar sea el que se copia)
+
 COPY build/libs/*.jar /app/app.jar
 
-# Asegúrate en application.yml: server.port=${PORT:8080}
-ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app/app.jar"]
+EXPOSE 8080
+
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
