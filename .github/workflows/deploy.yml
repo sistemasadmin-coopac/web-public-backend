@@ -18,6 +18,7 @@ env:
   REGION: southamerica-west1
   SPRING_PROFILES_ACTIVE: prod
   GCS_PROJECT_ID: coopac-elsalvador-backend
+  CLOUD_SQL_INSTANCE: coopac-elsalvador-backend:us-central1:coopac-elsalvador-web-public-db
 
 jobs:
   build-and-deploy:
@@ -76,6 +77,7 @@ jobs:
           env_vars: |
             SPRING_PROFILES_ACTIVE=${{ env.SPRING_PROFILES_ACTIVE }}
             GCS_PROJECT_ID=${{ env.GCS_PROJECT_ID }}
+            DB_URL=jdbc:postgresql:///web-public-coopac-db?cloudSqlInstance=${{ env.CLOUD_SQL_INSTANCE }}&socketFactory=com.google.cloud.sql.postgres.SocketFactory
           secrets: |
             DB_USERNAME=DB_USERNAME:latest
             DB_PASSWORD=DB_PASSWORD:latest
@@ -90,3 +92,4 @@ jobs:
             --max-instances=1
             --cpu-boost
             --port=8080
+            --add-cloudsql-instances=${{ env.CLOUD_SQL_INSTANCE }}
