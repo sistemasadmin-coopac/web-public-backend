@@ -73,27 +73,19 @@ jobs:
           region: ${{ env.REGION }}
           service: ${{ env.SERVICE }}
           image: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_NAME }}/${{ env.IMAGE_NAME }}:${{ steps.shortsha.outputs.sha }}
-          # ENV normales (no sensibles)
           env_vars: |
             SPRING_PROFILES_ACTIVE=${{ env.SPRING_PROFILES_ACTIVE }}
             GCS_PROJECT_ID=${{ env.GCS_PROJECT_ID }}
-            # JVM con límite bajo para ahorrar memoria
             JAVA_TOOL_OPTIONS=-Xmx512m -XX:+UseZGC -XX:+UnlockExperimentalVMOptions
-          # Secretos desde Secret Manager
           secrets: |
             DB_USERNAME=DB_USERNAME:latest
             DB_PASSWORD=DB_PASSWORD:latest
             GCS_BUCKET_NAME=GCS_BUCKET_NAME:latest
-          # Flags de Cloud Run orientados a costo bajo
           flags: |
-            --memory=512Mi         # súbelo a 1Gi si ves OOM
+            --memory=512Mi
             --cpu=1
-            --concurrency=200      # más concurrency = menos instancias
+            --concurrency=200
             --execution-environment=gen2
-            --timeout=120          # requests más cortas
-            --min-instances=0      # escala a cero (ahorro)
-            --max-instances=5      # límite para evitar gastos
-            # No usar --no-cpu-throttling -> permite throttling para ahorrar
-
-      - name: Output Service URL
-        run: echo "URL: ${{ steps.deploy.outputs.url }}"
+            --timeout=120
+            --min-instances=0
+            --max-instances=5
