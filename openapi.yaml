@@ -1,0 +1,912 @@
+openapi: 3.1.0
+info:
+  title: COOPAC El Salvador - Backend API
+  version: 1.0.0
+  description: >
+    API pública y administrativa para contenido, productos, servicios, promociones y reportes financieros.
+    Diseñada para integrarse con el frontend actual y permitir edición desde un panel administrativo.
+servers:
+  - url: https://api.coopac.com.sv/api/v1
+  - url: http://localhost:8080/api/v1
+tags:
+  - name: Auth
+  - name: Public/Hero
+  - name: Public/Stats
+  - name: Public/Contact
+  - name: Public/Products
+  - name: Public/Promotions
+  - name: Public/Financial Reports
+  - name: Admin/Hero
+  - name: Admin/Stats
+  - name: Admin/Contact
+  - name: Admin/Products
+  - name: Admin/Promotions
+  - name: Admin/Financial Reports
+  - name: Admin/Files
+
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Iniciar sesión
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string }
+                password: { type: string, format: password }
+      responses:
+        "200":
+          description: Tokens emitidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokens'
+        "401": { $ref: '#/components/responses/Unauthorized' }
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refrescar access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken: { type: string }
+      responses:
+        "200":
+          description: Nuevo access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokens'
+        "401": { $ref: '#/components/responses/Unauthorized' }
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Cerrar sesión (invalidar refresh token)
+      security:
+        - bearerAuth: []
+      responses:
+        "204": { description: Logout ok }
+        "401": { $ref: '#/components/responses/Unauthorized' }
+
+  ########################
+  # Public content APIs  #
+  ########################
+
+  /public/hero:
+    get:
+      tags: [Public/Hero]
+      summary: Obtener hero de la home
+      responses:
+        "200":
+          description: HeroModel ({ hero: {...} })
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HeroModel'
+
+  /public/stats:
+    get:
+      tags: [Public/Stats]
+      summary: Obtener estadísticas para la home
+      responses:
+        "200":
+          description: StatsModel
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatsModel'
+
+  /public/contact:
+    get:
+      tags: [Public/Contact]
+      summary: Obtener datos de contacto
+      responses:
+        "200":
+          description: ContactModel ({ contact: {...} })
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactModel'
+
+  /public/products:
+    get:
+      tags: [Public/Products]
+      summary: Listar productos y categorías
+      parameters:
+        - in: query
+          name: category
+          schema: { type: string, description: "ID de categoría ('' para Todos)" }
+        - in: query
+          name: q
+          schema: { type: string, description: "Búsqueda por texto" }
+        - in: query
+          name: featured
+          schema: { type: boolean }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, default: 50 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        "200":
+          description: Estructura tipo products.json (categories + products)
+          headers:
+            X-Total-Count:
+              schema: { type: integer }
+              description: Total de productos sin paginar
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductsData'
+
+  /public/products/{id}:
+    get:
+      tags: [Public/Products]
+      summary: Obtener detalle de producto
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Producto
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        "404": { $ref: '#/components/responses/NotFound' }
+
+  /public/promotions:
+    get:
+      tags: [Public/Promotions]
+      summary: Listar promociones (activas por defecto)
+      parameters:
+        - in: query
+          name: active
+          schema: { type: boolean, default: true }
+        - in: query
+          name: category
+          schema: { type: string }
+        - in: query
+          name: featured
+          schema: { type: boolean }
+      responses:
+        "200":
+          description: PromotionsModel ({ header, promotions })
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromotionsModel'
+
+  /public/financial-reports:
+    get:
+      tags: [Public/Financial Reports]
+      summary: Obtener datos combinados de reportes
+      description: Estructura agregada (summary, categories, stats)
+      responses:
+        "200":
+          description: CombinedFinancialData
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CombinedFinancialData'
+
+  /public/financial-reports/reports:
+    get:
+      tags: [Public/Financial Reports]
+      summary: Buscar reportes individuales
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string }
+        - in: query
+          name: category
+          schema: { type: string }
+        - in: query
+          name: year
+          schema: { type: string }
+      responses:
+        "200":
+          description: Lista de reportes
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/FinancialReport' }
+
+  /public/financial-reports/{id}:
+    get:
+      tags: [Public/Financial Reports]
+      summary: Obtener un reporte
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Reporte
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialReport'
+        "404": { $ref: '#/components/responses/NotFound' }
+
+  /public/financial-reports/stats:
+    get:
+      tags: [Public/Financial Reports]
+      summary: Métricas de uso de reportes
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportsUsageStats'
+
+  ########################
+  # Admin (secured)      #
+  ########################
+
+  /admin/hero:
+    put:
+      tags: [Admin/Hero]
+      summary: Reemplazar hero completo
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/HeroModel' }
+      responses:
+        "200": { description: Actualizado, content: { application/json: { schema: { $ref: '#/components/schemas/HeroModel' }}}}
+        "401": { $ref: '#/components/responses/Unauthorized' }
+
+    patch:
+      tags: [Admin/Hero]
+      summary: Actualizar hero parcialmente
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Partial<HeroModel>
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/HeroModel' }}}}
+        "401": { $ref: '#/components/responses/Unauthorized' }
+
+  /admin/stats:
+    get:
+      tags: [Admin/Stats]
+      summary: Listar estadísticas (admin)
+      security: [ { bearerAuth: [] } ]
+      responses:
+        "200":
+          description: StatsModel
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StatsModel' }
+    patch:
+      tags: [Admin/Stats]
+      summary: Actualizar Stats header/cta/layout/animations o items
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Partial<StatsModel>
+      responses:
+        "200": { description: OK }
+
+  /admin/stats/items:
+    post:
+      tags: [Admin/Stats]
+      summary: Crear estadística
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Statistic' }
+      responses:
+        "201": { description: Creado, content: { application/json: { schema: { $ref: '#/components/schemas/Statistic' }}}}
+
+  /admin/stats/items/{id}:
+    patch:
+      tags: [Admin/Stats]
+      summary: Actualizar estadística
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, description: Partial<Statistic> }
+      responses:
+        "200": { description: OK }
+    delete:
+      tags: [Admin/Stats]
+      summary: Eliminar estadística
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Eliminado }
+
+  /admin/contact:
+    get:
+      tags: [Admin/Contact]
+      summary: Obtener ContactModel (admin)
+      security: [ { bearerAuth: [] } ]
+      responses:
+        "200":
+          description: ContactModel
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ContactModel' }
+    patch:
+      tags: [Admin/Contact]
+      summary: Actualizar secciones de contacto
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, description: Partial<ContactModel> }
+      responses:
+        "200": { description: OK }
+
+  /admin/products:
+    get:
+      tags: [Admin/Products]
+      summary: Listar productos (admin)
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [draft, published, archived] }
+      responses:
+        "200":
+          description: Lista
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ProductAdmin' }}}}
+    post:
+      tags: [Admin/Products]
+      summary: Crear producto
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProductAdmin' }
+      responses:
+        "201": { description: Creado }
+
+  /admin/products/{id}:
+    patch:
+      tags: [Admin/Products]
+      summary: Actualizar producto
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, description: Partial<ProductAdmin> }
+      responses:
+        "200": { description: OK }
+    delete:
+      tags: [Admin/Products]
+      summary: Eliminar producto
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Eliminado }
+
+  /admin/promotions:
+    get:
+      tags: [Admin/Promotions]
+      summary: Listar promociones (admin)
+      security: [ { bearerAuth: [] } ]
+      responses:
+        "200":
+          description: Lista
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/PromotionAdmin' } }
+    post:
+      tags: [Admin/Promotions]
+      summary: Crear promoción
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PromotionAdmin' }
+      responses:
+        "201": { description: Creado }
+
+  /admin/promotions/{id}:
+    patch:
+      tags: [Admin/Promotions]
+      summary: Actualizar promoción
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, description: Partial<PromotionAdmin> }
+      responses:
+        "200": { description: OK }
+    delete:
+      tags: [Admin/Promotions]
+      summary: Eliminar promoción
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Eliminado }
+
+  /admin/financial-reports:
+    get:
+      tags: [Admin/Financial Reports]
+      summary: Listar reportes financieros (admin)
+      security: [ { bearerAuth: [] } ]
+      responses:
+        "200":
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/FinancialReportAdmin' }
+    post:
+      tags: [Admin/Financial Reports]
+      summary: Crear reporte financiero
+      description: >
+        Crea un reporte. Si delivery='binary', usar /admin/files primero y referenciar fileId.
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FinancialReportAdmin' }
+      responses:
+        "201": { description: Creado }
+
+  /admin/financial-reports/{id}:
+    patch:
+      tags: [Admin/Financial Reports]
+      summary: Actualizar reporte financiero
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, description: Partial<FinancialReportAdmin> }
+      responses:
+        "200": { description: OK }
+    delete:
+      tags: [Admin/Financial Reports]
+      summary: Eliminar reporte financiero
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Eliminado }
+
+  /admin/files:
+    post:
+      tags: [Admin/Files]
+      summary: Subir archivo (PDF/imagen)
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                purpose:
+                  type: string
+                  enum: [financial-report, image, document]
+      responses:
+        "201":
+          description: Archivo subido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  fileId: { type: string }
+                  url: { type: string, format: uri }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    Unauthorized:
+      description: No autorizado
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        details: { type: object, additionalProperties: true }
+
+    AuthTokens:
+      type: object
+      properties:
+        accessToken: { type: string }
+        refreshToken: { type: string }
+        expiresIn: { type: integer }
+
+    # ---------- HERO ----------
+    HeroModel:
+      type: object
+      properties:
+        hero: { $ref: '#/components/schemas/HeroContent' }
+      required: [hero]
+
+    HeroContent:
+      type: object
+      required: [badge, title, subtitle, description, primaryAction, secondaryAction, stats, backgroundElements, visualCards]
+      properties:
+        badge: { $ref: '#/components/schemas/HeroBadge' }
+        title: { $ref: '#/components/schemas/HeroTitle' }
+        subtitle: { type: string }
+        description: { type: string }
+        primaryAction: { $ref: '#/components/schemas/HeroAction' }
+        secondaryAction: { $ref: '#/components/schemas/HeroAction' }
+        stats:
+          type: array
+          items: { $ref: '#/components/schemas/HeroStat' }
+        backgroundElements:
+          type: array
+          items: { $ref: '#/components/schemas/BackgroundElement' }
+        visualCards:
+          type: array
+          items: { $ref: '#/components/schemas/VisualCard' }
+
+    HeroBadge:
+      type: object
+      properties:
+        text: { type: string }
+        icon: { type: string }
+        animated: { type: boolean }
+      required: [text, icon, animated]
+
+    HeroTitle:
+      type: object
+      properties:
+        main: { type: string }
+        highlight: { type: string }
+      required: [main, highlight]
+
+    HeroAction:
+      type: object
+      properties:
+        text: { type: string }
+        icon: { type: string }
+        url: { type: string, format: uri }
+        type:
+          type: string
+          enum: [whatsapp, navigate]
+      required: [text, icon, url, type]
+
+    HeroStat:
+      type: object
+      properties:
+        number: { type: string }
+        label: { type: string }
+        icon: { type: string }
+      required: [number, label, icon]
+
+    BackgroundElement:
+      type: object
+      properties:
+        type: { type: string, enum: [circle, blob] }
+        position:
+          type: object
+          properties:
+            top: { type: string }
+            right: { type: string }
+            bottom: { type: string }
+            left: { type: string }
+        size: { type: string }
+        color: { type: string }
+        opacity: { type: number }
+      required: [type, size, color, opacity]
+
+    VisualCard:
+      type: object
+      properties:
+        icon: { type: string }
+        title: { type: string }
+        description: { type: string }
+      required: [icon, title, description]
+
+    # ---------- STATS ----------
+    StatsModel:
+      type: object
+      required: [header, stats]
+      properties:
+        header:
+          type: object
+          properties:
+            title: { type: string }
+            description: { type: string }
+          required: [title, description]
+        cta:
+          type: object
+          nullable: true
+          properties:
+            text: { type: string }
+            icon: { type: string }
+            url: { type: string, format: uri }
+        stats:
+          type: array
+          items: { $ref: '#/components/schemas/Statistic' }
+        layout:
+          type: object
+          properties:
+            columns:
+              type: object
+              properties:
+                mobile: { type: integer }
+                tablet: { type: integer }
+                desktop: { type: integer }
+              required: [mobile, tablet, desktop]
+            gap: { type: string }
+            alignment: { type: string }
+            cardStyle: { type: string }
+        animations:
+          type: object
+          properties:
+            onScroll: { type: boolean }
+            delay: { type: integer }
+            duration: { type: integer }
+            easing: { type: string }
+
+    Statistic:
+      type: object
+      required: [id, number, label, description, icon, color, category, trend, countUp]
+      properties:
+        id: { type: string }
+        number: { type: string }
+        label: { type: string }
+        description: { type: string }
+        icon: { type: string }
+        color: { type: string }
+        category:
+          type: string
+          enum: [members, financial, experience, presence]
+        trend:
+          type: object
+          properties:
+            direction: { type: string, enum: [up, down, stable] }
+            percentage: { type: number }
+            period: { type: string }
+          required: [direction, percentage, period]
+        countUp:
+          type: object
+          properties:
+            start: { type: number }
+            end: { type: number }
+            duration: { type: number }
+            prefix: { type: string }
+            suffix: { type: string }
+          required: [start, end, duration]
+
+    # ---------- CONTACT ----------
+    ContactModel:
+      type: object
+      required: [contact]
+      properties:
+        contact:
+          type: object
+          required: [hero, contactInfo, schedule]
+          properties:
+            hero:
+              type: object
+              required: [title, subtitle, description]
+              properties:
+                title: { type: string }
+                subtitle: { type: string }
+                description: { type: string }
+            contactInfo:
+              type: object
+              required: [title, items]
+              properties:
+                title: { type: string }
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ContactItem'
+            schedule:
+              type: object
+              required: [title, items]
+              properties:
+                title: { type: string }
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ScheduleItem'
+
+    ContactItem:
+      type: object
+      required: [type, icon, label, value, description]
+      properties:
+        type: { type: string, enum: [phone, whatsapp, email, location] }
+        icon: { type: string }
+        label: { type: string }
+        value: { type: string }
+        description: { type: string }
+        url: { type: string, format: uri }
+
+    ScheduleItem:
+      type: object
+      required: [day, hours, type]
+      properties:
+        day: { type: string }
+        hours: { type: string }
+        type: { type: string, enum: [weekday, saturday, sunday] }
+
+    # ---------- PRODUCTS ----------
+    ProductsData:
+      type: object
+      required: [categories, products]
+      properties:
+        categories:
+          type: array
+          items: { $ref: '#/components/schemas/ProductCategoryInfo' }
+        products:
+          type: array
+          items: { $ref: '#/components/schemas/Product' }
+
+    ProductCategoryInfo:
+      type: object
+      required: [id, name, description, icon, color]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description: { type: string }
+        icon: { type: string }
+        color: { type: string }
+
+    Product:
+      type: object
+      required: [id, title, description, icon, category, color]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        description: { type: string }
+        icon: { type: string }
+        category: { type: string }
+        color: { type: string }
+        featured: { type: boolean }
+        isPopular: { type: boolean }
+        # Campos financieros opcionales
+        minAmount: { type: string }
+        maxAmount: { type: string }
+        interestRate: { type: string }
+        term: { type: string }
+        # Campos detallados opcionales  
+        fullDescription: { type: string }
+        features: 
+          type: array
+          items: { type: string }
+        benefits: { type: string }
+        requirements:
+          type: array
+          items: { type: string }
+        documents:
+          type: array
+          items: { type: string }
+        steps:
+          type: array
+          items: { $ref: '#/components/schemas/ProductStep' }
+        faqs:
+          type: array
+          items: { $ref: '#/components/schemas/ProductFAQ' }
+        contactInfo: { $ref: '#/components/schemas/ProductContactInfo' }
+        relatedProducts:
+          type: array
+          items: { type: string }
+
+    ProductStep:
+      type: object
+      required: [id, title, description, icon, estimatedTime]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        description: { type: string }
+        icon: { type: string }
+        estimatedTime: { type: string }
+
+    ProductFAQ:
+      type: object
+      required: [id, question, answer, category]
+      properties:
+        id: { type: string }
+        question: { type: string }
+        answer: { type: string }
+        category: { type: string }
+
+    ProductContactInfo:
+      type: object
+      properties:
+        phone: { type: string }
+        email: { type: string }
+        whatsapp: { type: string }
+        schedule: { type: string }
+        location: { type: string }
+
+    # Legacy/Alternative schemas for backward compatibility
+    ProductsDataLegacy:

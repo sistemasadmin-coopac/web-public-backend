@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://34.9.66.96:5432/web-public-coopac-db?sslmode=require
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+file:
+  storage:
+    type: gcs
+    gcs:
+      bucket-name: ${GCS_BUCKET_NAME}
+      project-id: ${GCS_PROJECT_ID:coopac-elsalvador-backend}
+      base-url: https://storage.googleapis.com
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
