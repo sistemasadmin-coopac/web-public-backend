@@ -138,9 +138,17 @@ jobs:
             --max-instances=1 \
             --execution-environment=gen2 \
             --add-cloudsql-instances=${{ env.CLOUD_SQL_INSTANCE }} \
-            --set-env-vars="SPRING_PROFILES_ACTIVE=${{ env.SPRING_PROFILES_ACTIVE }},GCS_PROJECT_ID=${{ env.GCS_PROJECT_ID }},JAVA_TOOL_OPTIONS=-Xmx768m -XX:+UseZGC" \
+            --set-env-vars="SPRING_PROFILES_ACTIVE=${{ env.SPRING_PROFILES_ACTIVE }},GCS_PROJECT_ID=${{ env.GCS_PROJECT_ID }},CLOUD_SQL_INSTANCE=${{ env.CLOUD_SQL_INSTANCE }},DB_NAME=${{ env.DB_NAME }},JAVA_TOOL_OPTIONS=-Xmx768m -XX:+UseZGC" \
             --update-secrets="DB_USERNAME=DB_USERNAME:latest,DB_PASSWORD=DB_PASSWORD:latest,GCS_BUCKET_NAME=GCS_BUCKET_NAME:latest" \
             --quiet
+
+      - name: 🔓 Set IAM Policy (Allow Public Access)
+        run: |
+          gcloud run services add-iam-policy-binding ${{ env.SERVICE }} \
+            --region=${{ env.REGION }} \
+            --member="allUsers" \
+            --role="roles/run.invoker" \
+            --quiet || echo "⚠️ IAM policy already set"
 
       - name: 🌐 Get Service URL
         id: url
