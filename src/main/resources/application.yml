@@ -43,11 +43,29 @@ server:
   compression:
     enabled: true
 
+# Google OAuth Configuration
+google:
+  client:
+    id: 312882262715-aa1ht9nc7ee16ettlg28stvbcr4gunqg.apps.googleusercontent.com
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 86400000  # 24 horas en milisegundos
+
+# Administradores autorizados
+app:
+  authorized:
+    admins: sistemas_admin@coopacelsalvador.com
+
 cors:
   allowed:
     origins:
       - http://localhost:4200
       - http://localhost:3000
+      - https://coopac-el-salvador-fronted.web.app
+      - https://coopac-el-salvador-fronted.firebaseapp.com
+      - https://coopacelsalvador.com
 
 file:
   storage:
@@ -55,3 +73,7 @@ file:
     local:
       base-path: ./uploads
       base-url: http://localhost:8080/uploads
+
+logging:
+  level:
+    com.elsalvador.coopac: DEBUG
