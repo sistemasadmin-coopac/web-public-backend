@@ -28,6 +28,7 @@ cors:
       - https://coopac-el-salvador-fronted.web.app
       - https://coopac-el-salvador-fronted.firebaseapp.com
       - https://coopacelsalvador.com
+      - https://www.coopacelsalvador.com
 
 file:
   storage:
