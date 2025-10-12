@@ -29,9 +29,45 @@ spring:
     init:
       mode: never
 
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+
 # Server configuration for tests
 server:
   port: 0
+
+# Google OAuth Configuration (valores de test)
+google:
+  client:
+    id: test-client-id.apps.googleusercontent.com
+
+# JWT Configuration (valores de test)
+jwt:
+  secret: test_secret_key_for_testing_purposes_must_be_at_least_256_bits_long
+  expiration: 86400000
+
+# Administradores autorizados (valores de test)
+app:
+  authorized:
+    admins: test@example.com,admin@test.com
+
+# CORS Configuration (valores de test)
+cors:
+  allowed:
+    origins:
+      - http://localhost:4200
+      - http://localhost:3000
+
+# File storage config (valores de test)
+file:
+  storage:
+    type: local
+    local:
+      base-path: ./test-uploads
+      base-url: http://localhost:8080/uploads
 
 # Logging configuration for tests
 logging:
