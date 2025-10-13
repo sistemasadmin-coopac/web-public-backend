@@ -23,6 +23,17 @@ server:
   port: ${PORT:8080}
   shutdown: graceful
 
+# Google OAuth Configuration (heredado de application.yml)
+# google.client.id ya está configurado en application.yml
+
+# JWT Configuration (usa el secreto de GCP)
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 86400000
+
+# Administradores autorizados (heredado de application.yml)
+# app.authorized.admins ya está configurado
+
 cors:
   allowed:
     origins:
