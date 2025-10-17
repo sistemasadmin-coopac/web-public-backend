@@ -8,8 +8,11 @@ import com.elsalvador.coopac.service.publicpages.GetDataAboutPageService;
 import com.elsalvador.coopac.service.publicpages.mapper.about.AboutMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.elsalvador.coopac.config.CacheConfig.ABOUT_PAGE_CACHE;
 
 /**
  * Servicio para la página About que orquesta todos los datos necesarios
@@ -37,9 +40,11 @@ public class GetDataAboutPageServiceImpl implements GetDataAboutPageService {
 
     /**
      * Obtiene todos los datos necesarios para la página About
+     * Cache se actualiza cada 6 horas
      */
+    @Cacheable(value = ABOUT_PAGE_CACHE, key = "'about'")
     public AboutPageDTO getAboutPageData() {
-        log.debug("Obteniendo datos de la página About");
+        log.debug("Obteniendo datos de la página About desde la base de datos");
 
         var header = buildHeader();
         var sections = buildSections();

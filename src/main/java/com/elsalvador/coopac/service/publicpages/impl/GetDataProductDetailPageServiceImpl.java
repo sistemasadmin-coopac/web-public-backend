@@ -7,8 +7,11 @@ import com.elsalvador.coopac.service.publicpages.GetDataProductDetailPageService
 import com.elsalvador.coopac.service.publicpages.mapper.product.ProductDetailMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.elsalvador.coopac.config.CacheConfig.PRODUCT_DETAIL_CACHE;
 
 @Service
 @RequiredArgsConstructor
@@ -21,9 +24,11 @@ public class GetDataProductDetailPageServiceImpl implements GetDataProductDetail
 
     /**
      * Obtiene el detalle de un producto por su slug
+     * Cache se actualiza cada 6 horas por slug de producto
      */
+    @Cacheable(value = PRODUCT_DETAIL_CACHE, key = "#slug")
     public ProductDetailDTO getProductDetail(String slug) {
-        log.info("Obteniendo detalle del producto con slug: {}", slug);
+        log.info("Obteniendo detalle del producto con slug: {} desde la base de datos", slug);
 
         var productOpt = productsRepository.findBySlugForDetail(slug);
 

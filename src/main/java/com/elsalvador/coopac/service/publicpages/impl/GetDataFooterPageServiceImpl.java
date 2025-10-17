@@ -8,8 +8,11 @@ import com.elsalvador.coopac.service.publicpages.GetDataFooterPageService;
 import com.elsalvador.coopac.service.publicpages.mapper.footer.FooterMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.elsalvador.coopac.config.CacheConfig.FOOTER_PAGE_CACHE;
 
 /**
  * Servicio para Footer que orquesta todos los datos necesarios
@@ -29,9 +32,11 @@ public class GetDataFooterPageServiceImpl implements GetDataFooterPageService {
 
     /**
      * Obtiene los datos del footer
+     * Cache se actualiza cada 6 horas
      */
+    @Cacheable(value = FOOTER_PAGE_CACHE, key = "'footer'")
     public FooterDTO getFooterData() {
-        log.debug("Obteniendo datos del footer");
+        log.debug("Obteniendo datos del footer desde la base de datos");
 
         var columns = footerColumnsRepository.findByIsActiveTrueWithLinksOrderByDisplayOrderAsc();
 
