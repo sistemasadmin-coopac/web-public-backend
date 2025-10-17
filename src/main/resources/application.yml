@@ -2,6 +2,21 @@ spring:
   application:
     name: cac-elsalvador-backend
 
+  # Configuración de seguridad OAuth2
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope: openid,profile,email
+            authorization-grant-type: authorization_code
+            redirect-uri: "http://localhost:8080/login/oauth2/code/google"
+        provider:
+          google:
+            issuer-uri: https://accounts.google.com
+
   datasource:
     url: jdbc:postgresql://localhost:5432/cac-elsalvador-web
     username: ${DB_USERNAME:postgres}
@@ -33,6 +48,16 @@ spring:
       max-file-size: 50MB
       max-request-size: 50MB
 
+    # Configuración de sesión para desarrollo con SPA en puerto diferente
+    session:
+      timeout: 3600s
+      cookie:
+        name: SESSIONID
+        http-only: true
+        secure: false         # false en desarrollo (localhost HTTP)
+        same-site: none       # None permite cookies entre localhost:8080 y localhost:4200
+        path: /
+
   jackson:
     time-zone: America/Lima
 
@@ -43,37 +68,19 @@ server:
   compression:
     enabled: true
 
-# Google OAuth Configuration
-google:
-  client:
-    id: 312882262715-aa1ht9nc7ee16ettlg28stvbcr4gunqg.apps.googleusercontent.com
-
-# JWT Configuration
-jwt:
-  secret: ${JWT_SECRET}
-  expiration: 86400000  # 24 horas en milisegundos
-
-# Administradores autorizados
+# Configuración de aplicación
 app:
-  authorized:
-    admins: sistemas_admin@coopacelsalvador.com
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:4200}
 
 cors:
   allowed:
     origins:
       - http://localhost:4200
-      - http://localhost:3000
-      - https://coopac-el-salvador-fronted.web.app
-      - https://coopac-el-salvador-fronted.firebaseapp.com
       - https://coopacelsalvador.com
 
 file:
   storage:
     type: local
     local:
-      base-path: ./uploads
-      base-url: http://localhost:8080/uploads
-
-logging:
-  level:
-    com.elsalvador.coopac: DEBUG
+      base-path: ${FILE_STORAGE_PATH:./uploads}

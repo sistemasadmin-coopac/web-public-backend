@@ -43,17 +43,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-security'
-
-    // Google OAuth2 Client
-    implementation 'com.google.api-client:google-api-client:2.2.0'
-
-    // JWT
-    implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
     // Google Cloud Storage
-    implementation 'com.google.cloud:google-cloud-storage:2.30.0'
+    implementation 'com.google.cloud:google-cloud-storage:2.58.1'
 
     // Database
     runtimeOnly 'org.postgresql:postgresql'

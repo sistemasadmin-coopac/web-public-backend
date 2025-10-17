@@ -1,73 +1,34 @@
 spring:
   datasource:
-    url: jdbc:postgresql:///${DB_NAME:web-public-coopac-db}?cloudSqlInstance=${CLOUD_SQL_INSTANCE:coopac-elsalvador-backend:us-central1:coopac-elsalvador-web-public-db}&socketFactory=com.google.cloud.sql.postgres.SocketFactory&enableIamAuth=false
+    url: ${DATABASE_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
-    hikari:
-      maximum-pool-size: 3
-      minimum-idle: 1
-      connection-timeout: 30000
-      initialization-fail-timeout: -1
-      leak-detection-threshold: 60000
 
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    properties:
-      hibernate:
-        jdbc:
-          time_zone: America/Lima
-    open-in-view: false
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            redirect-uri: "https://coopacelsalvador.com/login/oauth2/code/google"
 
-server:
-  port: ${PORT:8080}
-  shutdown: graceful
-
-# Google OAuth Configuration (heredado de application.yml)
-# google.client.id ya está configurado en application.yml
-
-# JWT Configuration (usa el secreto de GCP)
-jwt:
-  secret: ${JWT_SECRET}
-  expiration: 86400000
-
-# Administradores autorizados (heredado de application.yml)
-# app.authorized.admins ya está configurado
+app:
+  frontend:
+    url: https://coopacelsalvador.com
 
 cors:
   allowed:
     origins:
-      - https://coopac-el-salvador-fronted.web.app
-      - https://coopac-el-salvador-fronted.firebaseapp.com
       - https://coopacelsalvador.com
       - https://www.coopacelsalvador.com
 
 file:
   storage:
-    type: gcs
+    type: ${STORAGE_TYPE:gcs}
     gcs:
       bucket-name: ${GCS_BUCKET_NAME}
-      project-id: ${GCS_PROJECT_ID:coopac-elsalvador-backend}
-      base-url: https://storage.googleapis.com
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics
-  endpoint:
-    health:
-      probes:
-        enabled: true
-      show-details: always
-  health:
-    livenessState:
-      enabled: true
-    readinessState:
-      enabled: true
+      project-id: ${GCP_PROJECT_ID}
 
 logging:
   level:
-    root: INFO
     com.elsalvador.coopac: INFO
-    com.google.cloud.sql: DEBUG
+    org.springframework: INFO
