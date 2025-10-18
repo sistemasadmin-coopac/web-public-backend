@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: ${DATABASE_URL}
+    url: jdbc:postgresql:///${DB_NAME:web-public-coopac-db}?cloudSqlInstance=${CLOUD_SQL_INSTANCE:coopac-elsalvador-backend:us-central1:coopac-elsalvador-web-public-db}&socketFactory=com.google.cloud.sql.postgres.SocketFactory&enableIamAuth=false
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
