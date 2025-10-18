@@ -7,8 +7,11 @@ import com.elsalvador.coopac.service.admin.home.UpdateHomePromotionsSectionServi
 import com.elsalvador.coopac.service.admin.home.mapper.HomePromotionsSectionAdminMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.elsalvador.coopac.config.CacheConfig.HOME_PAGE_CACHE;
 
 import java.util.Optional;
 
@@ -22,6 +25,7 @@ public class UpdateHomePromotionsSectionServiceImpl implements UpdateHomePromoti
     private final HomePromotionsSectionAdminMapper mapper;
 
     @Override
+    @CacheEvict(value = HOME_PAGE_CACHE, allEntries = true)
     public HomePromotionsSectionAdminDTO updatePromotionsSection(HomePromotionsSectionAdminDTO sectionDTO) {
         log.info("Actualizando sección de promociones con ID: {}", sectionDTO.id());
 

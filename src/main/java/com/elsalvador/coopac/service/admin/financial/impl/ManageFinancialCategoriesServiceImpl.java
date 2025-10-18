@@ -9,8 +9,11 @@ import com.elsalvador.coopac.service.admin.financial.ManageFinancialCategoriesSe
 import com.elsalvador.coopac.util.SlugGeneratorUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.elsalvador.coopac.config.CacheConfig.FINANCIAL_PAGE_CACHE;
 
 import java.util.List;
 import java.util.UUID;
@@ -30,6 +33,7 @@ public class ManageFinancialCategoriesServiceImpl implements ManageFinancialCate
 
     @Override
     @Transactional
+    @CacheEvict(value = FINANCIAL_PAGE_CACHE, allEntries = true)
     public FinancialAdminDTO.FinancialReportCategoryResponse createCategory(FinancialAdminDTO.FinancialReportCategoryRequest dto) {
         log.info("Creando nueva categoría de reportes: {}", dto.getName());
 
@@ -59,6 +63,7 @@ public class ManageFinancialCategoriesServiceImpl implements ManageFinancialCate
 
     @Override
     @Transactional
+    @CacheEvict(value = FINANCIAL_PAGE_CACHE, allEntries = true)
     public FinancialAdminDTO.FinancialReportCategoryResponse updateCategory(UUID id, FinancialAdminDTO.FinancialReportCategoryRequest dto) {
         log.info("Actualizando categoría con ID: {}", id);
 
@@ -90,6 +95,7 @@ public class ManageFinancialCategoriesServiceImpl implements ManageFinancialCate
 
     @Override
     @Transactional
+    @CacheEvict(value = FINANCIAL_PAGE_CACHE, allEntries = true)
     public void deleteCategory(UUID id) {
         log.info("Eliminando categoría con ID: {}", id);
 

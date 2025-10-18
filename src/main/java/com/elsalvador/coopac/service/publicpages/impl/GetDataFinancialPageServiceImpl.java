@@ -10,8 +10,11 @@ import com.elsalvador.coopac.service.publicpages.GetDataFinancialPageService;
 import com.elsalvador.coopac.service.publicpages.mapper.financial.FinancialMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.elsalvador.coopac.config.CacheConfig.FINANCIAL_PAGE_CACHE;
 
 import java.util.stream.Collectors;
 
@@ -35,9 +38,11 @@ public class GetDataFinancialPageServiceImpl implements GetDataFinancialPageServ
 
     /**
      * Obtiene todos los datos necesarios para la página Financial
+     * Cache se actualiza cada 6 horas
      */
+    @Cacheable(value = FINANCIAL_PAGE_CACHE, key = "'financial'")
     public FinancialPageDTO getFinancialPageData() {
-        log.debug("Obteniendo datos de la página Financial");
+        log.debug("Obteniendo datos de la página Financial desde la base de datos");
 
         var header = buildHeader();
         var sections = buildSections();

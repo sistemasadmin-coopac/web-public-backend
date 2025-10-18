@@ -9,8 +9,11 @@ import com.elsalvador.coopac.service.publicpages.GetDataProductPageService;
 import com.elsalvador.coopac.service.publicpages.mapper.product.ProductPageMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.elsalvador.coopac.config.CacheConfig.PRODUCT_PAGE_CACHE;
 
 @Service
 @RequiredArgsConstructor
@@ -25,9 +28,11 @@ public class GetDataProductPageServiceImpl implements GetDataProductPageService 
 
     /**
      * Obtiene los datos para la página de productos
+     * Cache se actualiza cada 6 horas
      */
+    @Cacheable(value = PRODUCT_PAGE_CACHE, key = "'products'")
     public ProductPageDTO getProductsPageData() {
-        log.info("Obteniendo datos para la página de productos");
+        log.info("Obteniendo datos para la página de productos desde la base de datos");
 
         var header = buildHeader();
         var sections = buildSections();

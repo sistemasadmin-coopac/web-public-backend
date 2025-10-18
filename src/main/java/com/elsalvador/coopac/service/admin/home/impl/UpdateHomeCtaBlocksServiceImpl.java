@@ -7,8 +7,11 @@ import com.elsalvador.coopac.repository.HomeCtaBlocksRepository;
 import com.elsalvador.coopac.service.admin.home.UpdateHomeCtaBlocksService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.elsalvador.coopac.config.CacheConfig.HOME_PAGE_CACHE;
 
 import java.util.UUID;
 
@@ -24,6 +27,7 @@ public class UpdateHomeCtaBlocksServiceImpl implements UpdateHomeCtaBlocksServic
     private final HomeCtaBlocksRepository homeCtaBlocksRepository;
 
     @Override
+    @CacheEvict(value = HOME_PAGE_CACHE, allEntries = true)
     public HomeCtaBlocksAdminDTO.HomeCtaBlockResponseDTO updateCtaBlock(
             UUID id,
             HomeCtaBlocksAdminDTO.UpdateHomeCtaBlockDTO updateDTO) {

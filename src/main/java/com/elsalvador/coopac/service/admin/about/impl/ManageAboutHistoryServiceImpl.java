@@ -9,8 +9,11 @@ import com.elsalvador.coopac.repository.about.AboutTimelineEventsRepository;
 import com.elsalvador.coopac.service.admin.about.ManageAboutHistoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.elsalvador.coopac.config.CacheConfig.ABOUT_PAGE_CACHE;
 
 import java.util.UUID;
 
@@ -27,6 +30,7 @@ public class ManageAboutHistoryServiceImpl implements ManageAboutHistoryService 
 
     @Override
     @Transactional
+    @CacheEvict(value = ABOUT_PAGE_CACHE, allEntries = true)
     public AboutAdminDTO.AboutTimelineEventDTO createTimelineEvent(AboutAdminDTO.AboutTimelineEventDTO dto) {
         log.info("Creando nuevo evento del timeline");
 
@@ -52,6 +56,7 @@ public class ManageAboutHistoryServiceImpl implements ManageAboutHistoryService 
 
     @Override
     @Transactional
+    @CacheEvict(value = ABOUT_PAGE_CACHE, allEntries = true)
     public AboutAdminDTO.AboutTimelineEventDTO updateTimelineEvent(UUID id, AboutAdminDTO.AboutTimelineEventDTO dto) {
         log.info("Actualizando evento del timeline con ID: {}", id);
 
@@ -72,6 +77,7 @@ public class ManageAboutHistoryServiceImpl implements ManageAboutHistoryService 
 
     @Override
     @Transactional
+    @CacheEvict(value = ABOUT_PAGE_CACHE, allEntries = true)
     public void deleteTimelineEvent(UUID id) {
         log.info("Eliminando evento del timeline con ID: {}", id);
 
@@ -85,6 +91,7 @@ public class ManageAboutHistoryServiceImpl implements ManageAboutHistoryService 
 
     @Override
     @Transactional
+    @CacheEvict(value = ABOUT_PAGE_CACHE, allEntries = true)
     public AboutAdminDTO.AboutHistorySectionDTO updateHistorySection(AboutAdminDTO.AboutHistorySectionDTO dto) {
         log.info("Actualizando configuración de la sección de historia");
 

@@ -8,8 +8,11 @@ import com.elsalvador.coopac.service.publicpages.GetDataHomePageService;
 import com.elsalvador.coopac.service.publicpages.mapper.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.elsalvador.coopac.config.CacheConfig.HOME_PAGE_CACHE;
 
 /**
  * Servicio para la página de inicio que orquesta todos los datos necesarios
@@ -40,9 +43,11 @@ public class GetDataHomePageServiceImpl implements GetDataHomePageService {
 
     /**
      * Obtiene todos los datos necesarios para la página de inicio
+     * Cache se actualiza cada 6 horas
      */
+    @Cacheable(value = HOME_PAGE_CACHE, key = "'home'")
     public HomePageDTO getHomePageData() {
-        log.debug("Obteniendo datos de la página de inicio");
+        log.debug("Obteniendo datos de la página de inicio desde la base de datos");
 
         var header = buildHeader();
         var sections = buildSections();

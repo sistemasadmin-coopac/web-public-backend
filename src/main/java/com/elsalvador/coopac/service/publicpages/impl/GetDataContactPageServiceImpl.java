@@ -13,8 +13,11 @@ import com.elsalvador.coopac.service.publicpages.GetDataContactPageService;
 import com.elsalvador.coopac.service.publicpages.mapper.contact.ContactMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.elsalvador.coopac.config.CacheConfig.CONTACT_PAGE_CACHE;
 
 /**
  * Servicio para la página Contact que orquesta todos los datos necesarios
@@ -37,9 +40,11 @@ public class GetDataContactPageServiceImpl implements GetDataContactPageService 
 
     /**
      * Obtiene todos los datos necesarios para la página Contact
+     * Cache se actualiza cada 6 horas
      */
+    @Cacheable(value = CONTACT_PAGE_CACHE, key = "'contact'")
     public ContactPageDTO getContactPageData() {
-        log.debug("Obteniendo datos de la página Contact");
+        log.debug("Obteniendo datos de la página Contact desde la base de datos");
 
         var header = buildHeader();
         var sections = buildSections();

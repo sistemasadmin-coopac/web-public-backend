@@ -139,7 +139,7 @@ jobs:
             --execution-environment=gen2 \
             --add-cloudsql-instances=${{ env.CLOUD_SQL_INSTANCE }} \
             --set-env-vars="SPRING_PROFILES_ACTIVE=${{ env.SPRING_PROFILES_ACTIVE }},GCS_PROJECT_ID=${{ env.GCS_PROJECT_ID }},CLOUD_SQL_INSTANCE=${{ env.CLOUD_SQL_INSTANCE }},DB_NAME=${{ env.DB_NAME }},JAVA_TOOL_OPTIONS=-Xmx768m -XX:+UseZGC" \
-            --update-secrets="DB_USERNAME=DB_USERNAME:latest,DB_PASSWORD=DB_PASSWORD:latest,GCS_BUCKET_NAME=GCS_BUCKET_NAME:latest,JWT_SECRET=JWT_SECRET:latest" \
+            --update-secrets="DATABASE_URL=DATABASE_URL:latest,DB_USERNAME=DB_USERNAME:latest,DB_PASSWORD=DB_PASSWORD:latest,GCS_BUCKET_NAME=GCS_BUCKET_NAME:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest" \
             --quiet
 
       - name: 🔓 Set IAM Policy (Allow Public Access)

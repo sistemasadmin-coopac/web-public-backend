@@ -7,8 +7,11 @@ import com.elsalvador.coopac.service.publicpages.GetDataNavigationPageService;
 import com.elsalvador.coopac.service.publicpages.mapper.navigation.NavigationMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.elsalvador.coopac.config.CacheConfig.NAVIGATION_PAGE_CACHE;
 
 /**
  * Servicio para Navigation que orquesta todos los datos necesarios
@@ -28,9 +31,11 @@ public class GetDataNavigationPageServiceImpl implements GetDataNavigationPageSe
 
     /**
      * Obtiene los datos de navegación principal
+     * Cache se actualiza cada 6 horas
      */
+    @Cacheable(value = NAVIGATION_PAGE_CACHE, key = "'main'")
     public NavigationDTO getMainNavigation() {
-        log.debug("Obteniendo datos de navegación principal");
+        log.debug("Obteniendo datos de navegación principal desde la base de datos");
 
         var menu = navigationMenusRepository
             .findBySlugAndIsActiveTrueWithItems("main")
