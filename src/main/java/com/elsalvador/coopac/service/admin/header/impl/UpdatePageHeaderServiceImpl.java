@@ -7,8 +7,11 @@ import com.elsalvador.coopac.service.admin.header.UpdatePageHeaderService;
 import com.elsalvador.coopac.service.admin.header.mapper.PageHeaderAdminMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.elsalvador.coopac.config.CacheConfig.*;
 
 import java.util.Optional;
 
@@ -22,6 +25,7 @@ public class UpdatePageHeaderServiceImpl implements UpdatePageHeaderService {
     private final PageHeaderAdminMapper pageHeaderAdminMapper;
 
     @Override
+    @CacheEvict(value = {HOME_PAGE_CACHE, ABOUT_PAGE_CACHE, CONTACT_PAGE_CACHE, FINANCIAL_PAGE_CACHE, PRODUCT_PAGE_CACHE}, allEntries = true)
     public PageHeaderAdminDTO updatePageHeader(PageHeaderAdminDTO pageHeaderDTO) {
         log.info("Actualizando PageHeader con ID: {}", pageHeaderDTO.id());
         Optional<PageHeaders> pageHeaderDb = pageHeadersRepository.findById(pageHeaderDTO.id());

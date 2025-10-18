@@ -6,8 +6,11 @@ import com.elsalvador.coopac.repository.about.AboutMissionVisionRepository;
 import com.elsalvador.coopac.service.admin.about.ManageAboutMissionVisionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.elsalvador.coopac.config.CacheConfig.ABOUT_PAGE_CACHE;
 
 /**
  * Implementación del servicio para gestionar misión y visión
@@ -21,6 +24,7 @@ public class ManageAboutMissionVisionServiceImpl implements ManageAboutMissionVi
 
     @Override
     @Transactional
+    @CacheEvict(value = ABOUT_PAGE_CACHE, allEntries = true)
     public AboutAdminDTO.AboutMissionVisionDTO saveMissionVision(AboutAdminDTO.AboutMissionVisionDTO dto) {
         log.info("Creando o actualizando la configuración de misión y visión");
 

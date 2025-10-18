@@ -8,8 +8,12 @@ import com.elsalvador.coopac.repository.contact.ContactChannelsRepository;
 import com.elsalvador.coopac.service.admin.contact.UpdateContactChannelsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.elsalvador.coopac.config.CacheConfig.CONTACT_PAGE_CACHE;
+import static com.elsalvador.coopac.config.CacheConfig.FOOTER_PAGE_CACHE;
 
 import java.util.UUID;
 
@@ -26,6 +30,7 @@ public class UpdateContactChannelsServiceImpl implements UpdateContactChannelsSe
     private final SiteSettingsRepository siteSettingsRepository;
 
     @Override
+    @CacheEvict(value = {CONTACT_PAGE_CACHE, FOOTER_PAGE_CACHE}, allEntries = true)
     public ContactAdminDTO.ContactChannelItemDTO updateContactChannel(UUID id, ContactAdminDTO.UpdateContactChannelDTO updateDTO) {
         log.info("Actualizando canal de contacto con ID: {}", id);
 

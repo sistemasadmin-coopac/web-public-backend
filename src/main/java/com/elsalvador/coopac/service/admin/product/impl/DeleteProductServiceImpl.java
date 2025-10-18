@@ -6,8 +6,11 @@ import com.elsalvador.coopac.repository.product.*;
 import com.elsalvador.coopac.service.admin.product.DeleteProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.elsalvador.coopac.config.CacheConfig.*;
 
 import java.util.UUID;
 
@@ -28,6 +31,7 @@ public class DeleteProductServiceImpl implements DeleteProductService {
     private final ProductFinancialInfoRepository productFinancialInfoRepository;
 
     @Override
+    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE}, allEntries = true)
     public void deleteProduct(UUID productId) {
         log.info("Eliminando producto con ID: {}", productId);
 

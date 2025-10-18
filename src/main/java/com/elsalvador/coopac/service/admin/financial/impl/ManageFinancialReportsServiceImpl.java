@@ -11,9 +11,12 @@ import com.elsalvador.coopac.service.storage.FileStorageService;
 import com.elsalvador.coopac.util.SlugGeneratorUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import static com.elsalvador.coopac.config.CacheConfig.FINANCIAL_PAGE_CACHE;
 
 import java.util.List;
 import java.util.UUID;
@@ -34,6 +37,7 @@ public class ManageFinancialReportsServiceImpl implements ManageFinancialReports
 
     @Override
     @Transactional
+    @CacheEvict(value = FINANCIAL_PAGE_CACHE, allEntries = true)
     public FinancialAdminDTO.FinancialReportResponse createReport(FinancialAdminDTO.FinancialReportRequest dto) {
         log.info("Creando nuevo reporte financiero: {}", dto.getTitle());
 
@@ -78,6 +82,7 @@ public class ManageFinancialReportsServiceImpl implements ManageFinancialReports
 
     @Override
     @Transactional
+    @CacheEvict(value = FINANCIAL_PAGE_CACHE, allEntries = true)
     public FinancialAdminDTO.FinancialReportResponse updateReport(UUID id, FinancialAdminDTO.FinancialReportUpdateRequest dto) {
         log.info("Actualizando reporte financiero con ID: {}", id);
 

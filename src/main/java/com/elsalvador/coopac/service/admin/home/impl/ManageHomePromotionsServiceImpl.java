@@ -9,8 +9,11 @@ import com.elsalvador.coopac.service.admin.home.ManageHomePromotionsService;
 import com.elsalvador.coopac.service.admin.home.mapper.HomePromotionsAdminMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.elsalvador.coopac.config.CacheConfig.HOME_PAGE_CACHE;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -26,6 +29,7 @@ public class ManageHomePromotionsServiceImpl implements ManageHomePromotionsServ
     private final HomePromotionsAdminMapper mapper;
 
     @Override
+    @CacheEvict(value = HOME_PAGE_CACHE, allEntries = true)
     public HomePromotionsAdminDTO createPromotion(HomePromotionsAdminDTO promotionDTO) {
         log.info("Creando nueva promoción para sección ID: {}", promotionDTO.sectionId());
 
@@ -56,6 +60,7 @@ public class ManageHomePromotionsServiceImpl implements ManageHomePromotionsServ
     }
 
     @Override
+    @CacheEvict(value = HOME_PAGE_CACHE, allEntries = true)
     public HomePromotionsAdminDTO updatePromotion(HomePromotionsAdminDTO promotionDTO) {
         log.info("Actualizando promoción con ID: {}", promotionDTO.id());
 

@@ -9,8 +9,11 @@ import com.elsalvador.coopac.repository.about.AboutBoardSectionRepository;
 import com.elsalvador.coopac.service.admin.about.ManageAboutBoardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.elsalvador.coopac.config.CacheConfig.ABOUT_PAGE_CACHE;
 
 import java.util.UUID;
 
@@ -27,6 +30,7 @@ public class ManageAboutBoardServiceImpl implements ManageAboutBoardService {
 
     @Override
     @Transactional
+    @CacheEvict(value = ABOUT_PAGE_CACHE, allEntries = true)
     public AboutAdminDTO.AboutBoardMemberDTO createBoardMember(AboutAdminDTO.AboutBoardMemberDTO dto) {
         log.info("Creando nuevo miembro de junta directiva: {}", dto.getFullName());
 
@@ -50,6 +54,7 @@ public class ManageAboutBoardServiceImpl implements ManageAboutBoardService {
 
     @Override
     @Transactional
+    @CacheEvict(value = ABOUT_PAGE_CACHE, allEntries = true)
     public AboutAdminDTO.AboutBoardMemberDTO updateBoardMember(UUID id, AboutAdminDTO.AboutBoardMemberDTO dto) {
         log.info("Actualizando miembro de junta directiva con ID: {}", id);
 
@@ -74,6 +79,7 @@ public class ManageAboutBoardServiceImpl implements ManageAboutBoardService {
 
     @Override
     @Transactional
+    @CacheEvict(value = ABOUT_PAGE_CACHE, allEntries = true)
     public void deleteBoardMember(UUID id) {
         log.info("Eliminando miembro de junta directiva con ID: {}", id);
 
@@ -96,6 +102,7 @@ public class ManageAboutBoardServiceImpl implements ManageAboutBoardService {
 
     @Override
     @Transactional
+    @CacheEvict(value = ABOUT_PAGE_CACHE, allEntries = true)
     public AboutAdminDTO.AboutBoardSectionDTO updateBoardSection(AboutAdminDTO.AboutBoardSectionDTO dto) {
         log.info("Actualizando configuración de la sección de junta directiva");
 

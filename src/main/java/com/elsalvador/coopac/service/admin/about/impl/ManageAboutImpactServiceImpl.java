@@ -9,8 +9,11 @@ import com.elsalvador.coopac.repository.about.AboutImpactSectionRepository;
 import com.elsalvador.coopac.service.admin.about.ManageAboutImpactService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.elsalvador.coopac.config.CacheConfig.ABOUT_PAGE_CACHE;
 
 import java.util.UUID;
 
@@ -27,6 +30,7 @@ public class ManageAboutImpactServiceImpl implements ManageAboutImpactService {
 
     @Override
     @Transactional
+    @CacheEvict(value = ABOUT_PAGE_CACHE, allEntries = true)
     public AboutAdminDTO.AboutImpactMetricDTO updateImpactMetric(UUID id, AboutAdminDTO.AboutImpactMetricDTO dto) {
         log.info("Actualizando métrica de impacto con ID: {}", id);
 
@@ -48,6 +52,7 @@ public class ManageAboutImpactServiceImpl implements ManageAboutImpactService {
 
     @Override
     @Transactional
+    @CacheEvict(value = ABOUT_PAGE_CACHE, allEntries = true)
     public AboutAdminDTO.AboutImpactSectionDTO updateImpactSection(AboutAdminDTO.AboutImpactSectionDTO dto) {
         log.info("Actualizando configuración de la sección de impacto");
 

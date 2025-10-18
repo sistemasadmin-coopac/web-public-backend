@@ -9,8 +9,11 @@ import com.elsalvador.coopac.repository.about.AboutValuesSectionRepository;
 import com.elsalvador.coopac.service.admin.about.ManageAboutValuesService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.elsalvador.coopac.config.CacheConfig.ABOUT_PAGE_CACHE;
 
 import java.util.UUID;
 
@@ -27,6 +30,7 @@ public class ManageAboutValuesServiceImpl implements ManageAboutValuesService {
 
     @Override
     @Transactional
+    @CacheEvict(value = ABOUT_PAGE_CACHE, allEntries = true)
     public AboutAdminDTO.AboutValueDTO createValue(AboutAdminDTO.AboutValueDTO dto) {
         log.info("Creando nuevo valor: {}", dto.getTitle());
 
@@ -46,6 +50,7 @@ public class ManageAboutValuesServiceImpl implements ManageAboutValuesService {
 
     @Override
     @Transactional
+    @CacheEvict(value = ABOUT_PAGE_CACHE, allEntries = true)
     public AboutAdminDTO.AboutValueDTO updateValue(UUID id, AboutAdminDTO.AboutValueDTO dto) {
         log.info("Actualizando valor con ID: {}", id);
 
@@ -66,6 +71,7 @@ public class ManageAboutValuesServiceImpl implements ManageAboutValuesService {
 
     @Override
     @Transactional
+    @CacheEvict(value = ABOUT_PAGE_CACHE, allEntries = true)
     public void deleteValue(UUID id) {
         log.info("Eliminando valor con ID: {}", id);
 
@@ -88,6 +94,7 @@ public class ManageAboutValuesServiceImpl implements ManageAboutValuesService {
 
     @Override
     @Transactional
+    @CacheEvict(value = ABOUT_PAGE_CACHE, allEntries = true)
     public AboutAdminDTO.AboutValuesSectionDTO updateValuesSection(AboutAdminDTO.AboutValuesSectionDTO dto) {
         log.info("Actualizando configuración de la sección de valores");
 

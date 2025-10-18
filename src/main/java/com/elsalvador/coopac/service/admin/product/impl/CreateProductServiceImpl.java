@@ -8,8 +8,11 @@ import com.elsalvador.coopac.service.admin.product.CreateProductService;
 import com.elsalvador.coopac.util.SlugGeneratorUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.elsalvador.coopac.config.CacheConfig.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,6 +36,7 @@ public class CreateProductServiceImpl implements CreateProductService {
     private final SlugGeneratorUtil slugGeneratorUtil;
 
     @Override
+    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE}, allEntries = true)
     public ProductsAdminDTO.ProductResponseDTO createProduct(ProductsAdminDTO.CreateProductDTO createDTO) {
         log.info("Creando nuevo producto con título: {}", createDTO.title());
 

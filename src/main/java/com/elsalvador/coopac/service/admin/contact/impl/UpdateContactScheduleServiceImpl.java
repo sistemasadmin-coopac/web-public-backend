@@ -7,8 +7,11 @@ import com.elsalvador.coopac.repository.contact.ContactScheduleEntriesRepository
 import com.elsalvador.coopac.service.admin.contact.UpdateContactScheduleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.elsalvador.coopac.config.CacheConfig.CONTACT_PAGE_CACHE;
 
 import java.util.UUID;
 
@@ -24,6 +27,7 @@ public class UpdateContactScheduleServiceImpl implements UpdateContactScheduleSe
     private final ContactScheduleEntriesRepository contactScheduleRepository;
 
     @Override
+    @CacheEvict(value = CONTACT_PAGE_CACHE, allEntries = true)
     public ContactAdminDTO.ContactScheduleItemDTO updateContactSchedule(UUID id, ContactAdminDTO.UpdateContactScheduleDTO updateDTO) {
         log.info("Actualizando horario de contacto con ID: {}", id);
 
