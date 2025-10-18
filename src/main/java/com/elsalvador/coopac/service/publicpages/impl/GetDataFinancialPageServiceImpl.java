@@ -111,6 +111,7 @@ public class GetDataFinancialPageServiceImpl implements GetDataFinancialPageServ
 
     /**
      * Construye la sección de categorías con sus reportes
+     * Solo incluye categorías que tengan al menos un reporte público y activo
      */
     private java.util.List<FinancialPageDTO.CategoryDTO> buildCategoriesSection() {
         var categories = financialReportCategoriesRepository.findByIsActiveTrueOrderByDisplayOrderAsc();
@@ -122,21 +123,23 @@ public class GetDataFinancialPageServiceImpl implements GetDataFinancialPageServ
 
         return categories.stream()
                 .map(this::buildCategoryWithReports)
+                .filter(categoryDTO -> categoryDTO.count() > 0) // Solo categorías con reportes
                 .collect(Collectors.toList());
     }
 
     /**
      * Construye una categoría individual con sus reportes
+     * Solo incluye reportes que sean públicos y activos
      */
     private FinancialPageDTO.CategoryDTO buildCategoryWithReports(com.elsalvador.coopac.entity.financial.FinancialReportCategories category) {
         var reports = financialReportsRepository
-                .findByCategoryAndIsPublicTrueAndIsActiveTrueOrderByDisplayOrderAscYearDescPublishDateDesc(category);
+                .findByCategoryAndIsPublicTrueAndIsActiveTrueOrderByDisplayOrderAscPublishDateDesc(category);
 
         var reportCount = financialReportsRepository
                 .countByCategoryAndIsPublicTrueAndIsActiveTrue(category);
 
         if (reports.isEmpty()) {
-            log.info("No se encontraron reportes para la categoría: {}", category.getName());
+            log.debug("Categoría '{}' no tiene reportes públicos y activos, será filtrada", category.getName());
         }
 
         return financialMapper.mapCategory(category, reports, reportCount);

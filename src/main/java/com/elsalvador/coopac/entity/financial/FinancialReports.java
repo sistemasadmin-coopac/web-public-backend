@@ -39,17 +39,8 @@ public class FinancialReports {
     @Column(name = "summary", columnDefinition = "TEXT")
     private String summary;
 
-    @Column(name = "year")
-    private Integer year;
-
-    @Column(name = "quarter", length = 2)
-    private String quarter;
-
     @Column(name = "publish_date")
     private LocalDate publishDate;
-
-    @Column(name = "delivery_type", nullable = false, length = 10)
-    private String deliveryType;
 
     @Column(name = "file_format", nullable = false, length = 10)
     private String fileFormat;
@@ -79,11 +70,13 @@ public class FinancialReports {
     @Column(name = "display_order", nullable = false)
     private Integer displayOrder = 0;
 
+    @Builder.Default
     @CreationTimestamp
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Builder.Default
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+    private LocalDateTime updatedAt = LocalDateTime.now();
 }

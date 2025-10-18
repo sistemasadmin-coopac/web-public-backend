@@ -72,13 +72,11 @@ public class FinancialMapper {
                 List.of();
 
         return new FinancialPageDTO.ReportDTO(
+                report.getId(),
                 report.getSlug(),
                 report.getTitle(),
                 report.getSummary(),
-                report.getYear(),
-                report.getQuarter(),
                 report.getPublishDate(),
-                report.getDeliveryType(),
                 file,
                 report.getThumbnailUrl(),
                 tags,

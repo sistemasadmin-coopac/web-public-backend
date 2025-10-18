@@ -18,6 +18,16 @@ public interface FileStorageService {
     String storeFile(MultipartFile file, String folder);
 
     /**
+     * Almacena un archivo con un nombre específico y retorna la URL de acceso
+     *
+     * @param file Archivo a almacenar
+     * @param folder Carpeta destino (ej: "financial-reports", "thumbnails")
+     * @param fileName Nombre específico para el archivo (sin extensión)
+     * @return URL del archivo almacenado
+     */
+    String storeFileWithName(MultipartFile file, String folder, String fileName);
+
+    /**
      * Elimina un archivo del almacenamiento
      *
      * @param fileUrl URL del archivo a eliminar
@@ -41,4 +51,3 @@ public interface FileStorageService {
      */
     boolean fileExists(String fileUrl);
 }
-

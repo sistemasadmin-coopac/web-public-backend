@@ -61,6 +61,37 @@ public class LocalFileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
+    public String storeFileWithName(MultipartFile file, String folder, String fileName) {
+        try {
+            // Crear directorio si no existe
+            Path uploadPath = Paths.get(basePath, folder);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            // Usar el nombre específico proporcionado
+            String originalFilename = file.getOriginalFilename();
+            String extension = originalFilename != null && originalFilename.contains(".")
+                ? originalFilename.substring(originalFilename.lastIndexOf("."))
+                : "";
+            String finalFileName = fileName + extension;
+
+            // Guardar archivo
+            Path filePath = uploadPath.resolve(finalFileName);
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            log.info("Archivo almacenado localmente con nombre específico: {}", filePath);
+
+            // Retornar URL de acceso
+            return baseUrl + "/" + folder + "/" + finalFileName;
+
+        } catch (IOException e) {
+            log.error("Error al almacenar archivo localmente", e);
+            throw new RuntimeException("Error al almacenar el archivo: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
     public void deleteFile(String fileUrl) {
         try {
             // Extraer el path relativo de la URL
@@ -97,4 +128,3 @@ public class LocalFileStorageServiceImpl implements FileStorageService {
         }
     }
 }
-

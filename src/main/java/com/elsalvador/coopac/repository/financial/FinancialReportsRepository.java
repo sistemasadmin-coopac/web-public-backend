@@ -14,9 +14,9 @@ import java.util.UUID;
 public interface FinancialReportsRepository extends JpaRepository<FinancialReports, UUID> {
 
     /**
-     * Obtiene todos los reportes activos y públicos de una categoría ordenados por orden de visualización, año y fecha de publicación
+     * Obtiene todos los reportes activos y públicos de una categoría ordenados por orden de visualización y fecha de publicación
      */
-    List<FinancialReports> findByCategoryAndIsPublicTrueAndIsActiveTrueOrderByDisplayOrderAscYearDescPublishDateDesc(FinancialReportCategories category);
+    List<FinancialReports> findByCategoryAndIsPublicTrueAndIsActiveTrueOrderByDisplayOrderAscPublishDateDesc(FinancialReportCategories category);
 
     /**
      * Cuenta los reportes activos y públicos por categoría
@@ -26,12 +26,12 @@ public interface FinancialReportsRepository extends JpaRepository<FinancialRepor
     /**
      * Obtiene todos los reportes de una categoría (para administración)
      */
-    List<FinancialReports> findByCategoryOrderByDisplayOrderAscYearDescPublishDateDesc(FinancialReportCategories category);
+    List<FinancialReports> findByCategoryOrderByDisplayOrderAscPublishDateDesc(FinancialReportCategories category);
 
     /**
      * Obtiene todos los reportes ordenados
      */
-    List<FinancialReports> findAllByOrderByDisplayOrderAscYearDescPublishDateDesc();
+    List<FinancialReports> findAllByOrderByDisplayOrderAscPublishDateDesc();
 
     /**
      * Busca un reporte por slug
@@ -53,16 +53,6 @@ public interface FinancialReportsRepository extends JpaRepository<FinancialRepor
      */
     @Query("SELECT COALESCE(MAX(r.displayOrder), 0) FROM FinancialReports r")
     Integer findMaxDisplayOrder();
-
-    /**
-     * Busca reportes por año
-     */
-    List<FinancialReports> findByYearOrderByPublishDateDesc(Integer year);
-
-    /**
-     * Busca reportes por año y trimestre
-     */
-    List<FinancialReports> findByYearAndQuarterOrderByPublishDateDesc(Integer year, String quarter);
 
     /**
      * Cuenta reportes por categoría

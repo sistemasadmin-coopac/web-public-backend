@@ -12,17 +12,24 @@ import java.util.UUID;
 public interface ManageFinancialReportsService {
 
     /**
-     * Crea un nuevo reporte financiero
+     * Crea un nuevo reporte financiero con archivos integrados
      */
-    FinancialAdminDTO.FinancialReportResponse createReport(FinancialAdminDTO.FinancialReportRequest dto);
+    FinancialAdminDTO.FinancialReportResponse createReport(
+            FinancialAdminDTO.FinancialReportRequest dto,
+            MultipartFile file,
+            MultipartFile thumbnail);
 
     /**
-     * Actualiza un reporte financiero existente
+     * Actualiza un reporte financiero existente con archivos opcionales
      */
-    FinancialAdminDTO.FinancialReportResponse updateReport(UUID id, FinancialAdminDTO.FinancialReportUpdateRequest dto);
+    FinancialAdminDTO.FinancialReportResponse updateReport(
+            UUID id,
+            FinancialAdminDTO.FinancialReportUpdateRequest dto,
+            MultipartFile file,
+            MultipartFile thumbnail);
 
     /**
-     * Elimina un reporte financiero
+     * Elimina un reporte financiero y sus archivos asociados
      */
     void deleteReport(UUID id);
 
@@ -40,14 +47,4 @@ public interface ManageFinancialReportsService {
      * Obtiene reportes por categoría
      */
     List<FinancialAdminDTO.FinancialReportResponse> getReportsByCategory(UUID categoryId);
-
-    /**
-     * Sube un archivo de reporte
-     */
-    FinancialAdminDTO.FileUploadResponse uploadReportFile(MultipartFile file);
-
-    /**
-     * Sube una miniatura para un reporte
-     */
-    FinancialAdminDTO.FileUploadResponse uploadThumbnail(MultipartFile file);
 }
