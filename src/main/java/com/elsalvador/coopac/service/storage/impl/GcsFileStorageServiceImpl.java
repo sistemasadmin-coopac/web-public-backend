@@ -67,6 +67,34 @@ public class GcsFileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
+    public String storeFileWithName(MultipartFile file, String folder, String fileName) {
+        try {
+            // Usar el nombre específico proporcionado
+            String originalFilename = file.getOriginalFilename();
+            String extension = originalFilename != null && originalFilename.contains(".")
+                ? originalFilename.substring(originalFilename.lastIndexOf("."))
+                : "";
+            String finalFileName = folder + "/" + fileName + extension;
+
+            // Subir archivo a GCS
+            BlobId blobId = BlobId.of(bucketName, finalFileName);
+            BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
+                    .setContentType(file.getContentType())
+                    .build();
+            storage.create(blobInfo, file.getBytes());
+
+            log.info("Archivo almacenado en GCS con nombre específico: {}/{}", bucketName, finalFileName);
+
+            // Retornar URL pública
+            return String.format("%s/%s/%s", baseUrl, bucketName, finalFileName);
+
+        } catch (Exception e) {
+            log.error("Error al almacenar archivo en GCS", e);
+            throw new RuntimeException("Error al almacenar el archivo en GCS: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
     public void deleteFile(String fileUrl) {
         try {
             // Extraer el nombre del blob de la URL

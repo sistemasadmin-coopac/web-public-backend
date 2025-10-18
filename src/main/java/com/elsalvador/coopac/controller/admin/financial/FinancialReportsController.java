@@ -26,25 +26,35 @@ public class FinancialReportsController {
     private final ManageFinancialReportsService reportsService;
 
     /**
-     * Crea un nuevo reporte financiero
+     * Crea un nuevo reporte financiero con archivos
      */
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<FinancialAdminDTO.FinancialReportResponse> createReport(
-            @Valid @RequestBody FinancialAdminDTO.FinancialReportRequest dto) {
+            @Valid @ModelAttribute FinancialAdminDTO.FinancialReportRequest dto,
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            @RequestParam(value = "thumbnail", required = false) MultipartFile thumbnail) {
+
         log.info("POST /api/admin/financial/reports - Creando nuevo reporte: {}", dto.getTitle());
-        FinancialAdminDTO.FinancialReportResponse created = reportsService.createReport(dto);
+
+        FinancialAdminDTO.FinancialReportResponse created = reportsService.createReport(dto, file, thumbnail);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     /**
      * Actualiza un reporte financiero existente
      */
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<FinancialAdminDTO.FinancialReportResponse> updateReport(
             @PathVariable UUID id,
-            @Valid @RequestBody FinancialAdminDTO.FinancialReportUpdateRequest dto) {
+            @Valid @ModelAttribute FinancialAdminDTO.FinancialReportUpdateRequest dto,
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            @RequestParam(value = "thumbnail", required = false) MultipartFile thumbnail) {
+
         log.info("PUT /api/admin/financial/reports/{} - Actualizando reporte", id);
-        FinancialAdminDTO.FinancialReportResponse updated = reportsService.updateReport(id, dto);
+
+        FinancialAdminDTO.FinancialReportResponse updated = reportsService.updateReport(id, dto, file, thumbnail);
+
         return ResponseEntity.ok(updated);
     }
 
@@ -84,27 +94,5 @@ public class FinancialReportsController {
         }
 
         return ResponseEntity.ok(reports);
-    }
-
-    /**
-     * Sube un archivo de reporte
-     */
-    @PostMapping(value = "/upload-file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<FinancialAdminDTO.FileUploadResponse> uploadReportFile(
-            @RequestParam("file") MultipartFile file) {
-        log.info("POST /api/admin/financial/reports/upload-file - Subiendo archivo: {}", file.getOriginalFilename());
-        FinancialAdminDTO.FileUploadResponse response = reportsService.uploadReportFile(file);
-        return ResponseEntity.ok(response);
-    }
-
-    /**
-     * Sube una miniatura para un reporte
-     */
-    @PostMapping(value = "/upload-thumbnail", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<FinancialAdminDTO.FileUploadResponse> uploadThumbnail(
-            @RequestParam("file") MultipartFile file) {
-        log.info("POST /api/admin/financial/reports/upload-thumbnail - Subiendo miniatura: {}", file.getOriginalFilename());
-        FinancialAdminDTO.FileUploadResponse response = reportsService.uploadThumbnail(file);
-        return ResponseEntity.ok(response);
     }
 }

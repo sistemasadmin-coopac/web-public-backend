@@ -38,8 +38,18 @@ public class ManageFinancialReportsServiceImpl implements ManageFinancialReports
     @Override
     @Transactional
     @CacheEvict(value = FINANCIAL_PAGE_CACHE, allEntries = true)
-    public FinancialAdminDTO.FinancialReportResponse createReport(FinancialAdminDTO.FinancialReportRequest dto) {
+    public FinancialAdminDTO.FinancialReportResponse createReport(
+            FinancialAdminDTO.FinancialReportRequest dto,
+            MultipartFile file,
+            MultipartFile thumbnail) {
+
         log.info("Creando nuevo reporte financiero: {}", dto.getTitle());
+
+        // Validar que se proporcionó un archivo
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Debe proporcionar un archivo");
+        }
+        validateFile(file);
 
         // Validar que la categoría existe
         FinancialReportCategories category = categoriesRepository.findById(dto.getCategoryId())
@@ -54,36 +64,63 @@ public class ManageFinancialReportsServiceImpl implements ManageFinancialReports
             displayOrder = reportsRepository.findMaxDisplayOrder() + 1;
         }
 
-        // Crear entidad
+        // Calcular fileFormat usando MIME type
+        String fileFormat = getFileExtensionFromMimeType(file.getContentType(), file.getOriginalFilename());
+
+        // Crear entidad con fileFormat y publishDate se genera automáticamente
         FinancialReports report = FinancialReports.builder()
                 .category(category)
                 .slug(slug)
                 .title(dto.getTitle())
                 .summary(dto.getSummary())
-                .year(dto.getYear())
-                .quarter(dto.getQuarter())
-                .publishDate(dto.getPublishDate())
-                .deliveryType(dto.getDeliveryType())
-                .fileFormat(dto.getFileFormat())
-                .fileUrl(dto.getFileUrl())
-                .fileSizeBytes(dto.getFileSizeBytes())
-                .thumbnailUrl(dto.getThumbnailUrl())
+                .publishDate(java.time.LocalDate.now()) // Fecha automática
+                .fileFormat(fileFormat)
+                .fileUrl("") // Temporal, se actualiza después
+                .fileSizeBytes(null)
+                .thumbnailUrl(null)
                 .tags(dto.getTags())
-                .isPublic(dto.getIsPublic() != null ? dto.getIsPublic() : true)
-                .isActive(dto.getIsActive() != null ? dto.getIsActive() : true)
+                .isPublic(dto.getIsPublic())
+                .isActive(dto.getIsActive())
                 .displayOrder(displayOrder)
                 .build();
 
+        // Guardar para obtener el ID generado
         FinancialReports savedReport = reportsRepository.save(report);
-        log.info("Reporte financiero creado exitosamente con ID: {} y slug: {}", savedReport.getId(), savedReport.getSlug());
+        log.info("Reporte creado con ID: {}", savedReport.getId());
 
-        return mapToResponse(savedReport);
+        // Subir archivo usando el ID del reporte como nombre
+        String fileUrl = fileStorageService.storeFileWithName(file, "financial-reports", savedReport.getId().toString());
+        Long fileSizeBytes = file.getSize();
+        log.info("Archivo subido con nombre: {} -> {}", savedReport.getId(), fileUrl);
+
+        // Subir miniatura si se proporciona
+        String thumbnailUrl = null;
+        if (thumbnail != null && !thumbnail.isEmpty()) {
+            validateImageFile(thumbnail);
+            thumbnailUrl = fileStorageService.storeFileWithName(thumbnail, "financial-reports/thumbnails", savedReport.getId().toString());
+            log.info("Miniatura subida con nombre: {} -> {}", savedReport.getId(), thumbnailUrl);
+        }
+
+        // Actualizar el reporte con las URLs de los archivos
+        savedReport.setFileUrl(fileUrl);
+        savedReport.setFileSizeBytes(fileSizeBytes);
+        savedReport.setThumbnailUrl(thumbnailUrl);
+
+        FinancialReports finalReport = reportsRepository.save(savedReport);
+        log.info("Reporte financiero completado exitosamente con ID: {} y slug: {}", finalReport.getId(), finalReport.getSlug());
+
+        return mapToResponse(finalReport);
     }
 
     @Override
     @Transactional
     @CacheEvict(value = FINANCIAL_PAGE_CACHE, allEntries = true)
-    public FinancialAdminDTO.FinancialReportResponse updateReport(UUID id, FinancialAdminDTO.FinancialReportUpdateRequest dto) {
+    public FinancialAdminDTO.FinancialReportResponse updateReport(
+            UUID id,
+            FinancialAdminDTO.FinancialReportUpdateRequest dto,
+            MultipartFile file,
+            MultipartFile thumbnail) {
+
         log.info("Actualizando reporte financiero con ID: {}", id);
 
         FinancialReports existingReport = reportsRepository.findById(id)
@@ -108,58 +145,53 @@ public class ManageFinancialReportsServiceImpl implements ManageFinancialReports
             log.info("Título actualizado, nuevo slug generado: {}", newSlug);
         }
 
-        // Actualizar campos
+        // Actualizar campos básicos
         existingReport.setSummary(dto.getSummary());
-        existingReport.setYear(dto.getYear());
-        existingReport.setQuarter(dto.getQuarter());
-        existingReport.setPublishDate(dto.getPublishDate());
-        existingReport.setDeliveryType(dto.getDeliveryType());
-
-        // Actualizar fileFormat solo si se proporciona
-        if (dto.getFileFormat() != null && !dto.getFileFormat().isEmpty()) {
-            existingReport.setFileFormat(dto.getFileFormat());
-        }
-
-        // Si la URL del archivo cambió, eliminar el anterior si es local
-        if (dto.getFileUrl() != null && !dto.getFileUrl().isEmpty()
-                && !existingReport.getFileUrl().equals(dto.getFileUrl())) {
-            try {
-                if (existingReport.getDeliveryType().equals("file")) {
-                    fileStorageService.deleteFile(existingReport.getFileUrl());
-                }
-            } catch (Exception e) {
-                log.warn("Error al eliminar archivo anterior: {}", e.getMessage());
-            }
-            existingReport.setFileUrl(dto.getFileUrl());
-            log.info("URL del archivo actualizada");
-        }
-        // Si no se envió fileUrl o está vacío, mantener la existente
-
-        // Actualizar fileSizeBytes solo si se proporcionó
-        if (dto.getFileSizeBytes() != null) {
-            existingReport.setFileSizeBytes(dto.getFileSizeBytes());
-        }
-
-        // Si la miniatura cambió, eliminar la anterior
-        if (dto.getThumbnailUrl() != null && !dto.getThumbnailUrl().isEmpty()) {
-            if (!dto.getThumbnailUrl().equals(existingReport.getThumbnailUrl())) {
-                try {
-                    if (existingReport.getThumbnailUrl() != null && !existingReport.getThumbnailUrl().isEmpty()) {
-                        fileStorageService.deleteFile(existingReport.getThumbnailUrl());
-                    }
-                } catch (Exception e) {
-                    log.warn("Error al eliminar miniatura anterior: {}", e.getMessage());
-                }
-                existingReport.setThumbnailUrl(dto.getThumbnailUrl());
-                log.info("Miniatura actualizada");
-            }
-        }
-        // Si no se envió thumbnailUrl o está vacío, mantener la existente
-
         existingReport.setTags(dto.getTags());
         existingReport.setIsPublic(dto.getIsPublic());
         existingReport.setIsActive(dto.getIsActive());
         existingReport.setDisplayOrder(dto.getDisplayOrder());
+
+        // Procesar archivo principal si se proporciona uno nuevo
+        if (file != null && !file.isEmpty()) {
+            // Eliminar archivo anterior si existe
+            if (existingReport.getFileUrl() != null && !existingReport.getFileUrl().isEmpty()) {
+                try {
+                    fileStorageService.deleteFile(existingReport.getFileUrl());
+                    log.info("Archivo anterior eliminado: {}", existingReport.getFileUrl());
+                } catch (Exception e) {
+                    log.warn("Error al eliminar archivo anterior: {}", e.getMessage());
+                }
+            }
+
+            // Subir nuevo archivo usando el ID del reporte como nombre
+            validateFile(file);
+            String newFileUrl = fileStorageService.storeFileWithName(file, "financial-reports", id.toString());
+            String fileFormat = getFileExtensionFromMimeType(file.getContentType(), file.getOriginalFilename());
+            existingReport.setFileUrl(newFileUrl);
+            existingReport.setFileFormat(fileFormat);
+            existingReport.setFileSizeBytes(file.getSize());
+            log.info("Nuevo archivo subido: {}", newFileUrl);
+        }
+
+        // Procesar miniatura si se proporciona una nueva
+        if (thumbnail != null && !thumbnail.isEmpty()) {
+            // Eliminar miniatura anterior si existe
+            if (existingReport.getThumbnailUrl() != null && !existingReport.getThumbnailUrl().isEmpty()) {
+                try {
+                    fileStorageService.deleteFile(existingReport.getThumbnailUrl());
+                    log.info("Miniatura anterior eliminada: {}", existingReport.getThumbnailUrl());
+                } catch (Exception e) {
+                    log.warn("Error al eliminar miniatura anterior: {}", e.getMessage());
+                }
+            }
+
+            // Subir nueva miniatura usando el ID del reporte como nombre
+            validateImageFile(thumbnail);
+            String newThumbnailUrl = fileStorageService.storeFileWithName(thumbnail, "financial-reports/thumbnails", id.toString());
+            existingReport.setThumbnailUrl(newThumbnailUrl);
+            log.info("Nueva miniatura subida: {}", newThumbnailUrl);
+        }
 
         FinancialReports updatedReport = reportsRepository.save(existingReport);
         log.info("Reporte financiero actualizado exitosamente");
@@ -169,19 +201,22 @@ public class ManageFinancialReportsServiceImpl implements ManageFinancialReports
 
     @Override
     @Transactional
+    @CacheEvict(value = FINANCIAL_PAGE_CACHE, allEntries = true)
     public void deleteReport(UUID id) {
         log.info("Eliminando reporte financiero con ID: {}", id);
 
         FinancialReports report = reportsRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Reporte no encontrado con ID: " + id));
 
-        // Eliminar archivos asociados si son locales
+        // Eliminar archivos asociados
         try {
-            if (report.getDeliveryType().equals("file")) {
+            if (report.getFileUrl() != null && !report.getFileUrl().isEmpty()) {
                 fileStorageService.deleteFile(report.getFileUrl());
+                log.info("Archivo eliminado: {}", report.getFileUrl());
             }
-            if (report.getThumbnailUrl() != null) {
+            if (report.getThumbnailUrl() != null && !report.getThumbnailUrl().isEmpty()) {
                 fileStorageService.deleteFile(report.getThumbnailUrl());
+                log.info("Miniatura eliminada: {}", report.getThumbnailUrl());
             }
         } catch (Exception e) {
             log.warn("Error al eliminar archivos: {}", e.getMessage());
@@ -207,7 +242,7 @@ public class ManageFinancialReportsServiceImpl implements ManageFinancialReports
     public List<FinancialAdminDTO.FinancialReportResponse> getAllReports() {
         log.debug("Obteniendo todos los reportes financieros");
 
-        return reportsRepository.findAllByOrderByDisplayOrderAscYearDescPublishDateDesc()
+        return reportsRepository.findAllByOrderByDisplayOrderAscPublishDateDesc()
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -221,45 +256,12 @@ public class ManageFinancialReportsServiceImpl implements ManageFinancialReports
         FinancialReportCategories category = categoriesRepository.findById(categoryId)
                 .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada con ID: " + categoryId));
 
-        return reportsRepository.findByCategoryOrderByDisplayOrderAscYearDescPublishDateDesc(category)
+        return reportsRepository.findByCategoryOrderByDisplayOrderAscPublishDateDesc(category)
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public FinancialAdminDTO.FileUploadResponse uploadReportFile(MultipartFile file) {
-        log.info("Subiendo archivo de reporte: {}", file.getOriginalFilename());
-
-        validateFile(file);
-
-        String fileUrl = fileStorageService.storeFile(file, "financial-reports");
-        String fileFormat = getFileExtension(file.getOriginalFilename());
-
-        return FinancialAdminDTO.FileUploadResponse.builder()
-                .fileUrl(fileUrl)
-                .fileName(file.getOriginalFilename())
-                .fileSizeBytes(file.getSize())
-                .fileFormat(fileFormat)
-                .build();
-    }
-
-    @Override
-    public FinancialAdminDTO.FileUploadResponse uploadThumbnail(MultipartFile file) {
-        log.info("Subiendo miniatura: {}", file.getOriginalFilename());
-
-        validateImageFile(file);
-
-        String fileUrl = fileStorageService.storeFile(file, "financial-reports/thumbnails");
-        String fileFormat = getFileExtension(file.getOriginalFilename());
-
-        return FinancialAdminDTO.FileUploadResponse.builder()
-                .fileUrl(fileUrl)
-                .fileName(file.getOriginalFilename())
-                .fileSizeBytes(file.getSize())
-                .fileFormat(fileFormat)
-                .build();
-    }
 
     private void validateFile(MultipartFile file) {
         if (file.isEmpty()) {
@@ -271,10 +273,10 @@ public class ManageFinancialReportsServiceImpl implements ManageFinancialReports
             throw new IllegalArgumentException("El archivo no puede superar los 50MB");
         }
 
-        // Validar tipo de archivo
-        String filename = file.getOriginalFilename();
-        if (filename == null || !isValidFileExtension(filename)) {
-            throw new IllegalArgumentException("Formato de archivo no permitido. Solo se permiten: PDF, XLS, XLSX, DOC, DOCX");
+        // Validar tipo de archivo usando MIME type
+        String contentType = file.getContentType();
+        if (contentType == null || !isValidMimeType(contentType)) {
+            throw new IllegalArgumentException("Formato de archivo no permitido. Solo se permiten: PDF, Excel (XLS, XLSX), Word (DOC, DOCX)");
         }
     }
 
@@ -295,17 +297,68 @@ public class ManageFinancialReportsServiceImpl implements ManageFinancialReports
         }
     }
 
-    private boolean isValidFileExtension(String filename) {
-        String extension = getFileExtension(filename).toLowerCase();
-        return extension.equals("pdf") || extension.equals("xls") || extension.equals("xlsx")
-                || extension.equals("doc") || extension.equals("docx");
+    private boolean isValidMimeType(String mimeType) {
+        return mimeType.equals("application/pdf") ||
+               mimeType.equals("application/vnd.ms-excel") ||
+               mimeType.equals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") ||
+               mimeType.equals("application/msword") ||
+               mimeType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
     }
 
+    /**
+     * Valida la extensión del archivo basándose en el nombre.
+     * Solo permite: PDF, XLS, XLSX, DOC, DOCX
+     */
+    private boolean isValidFileExtension(String filename) {
+        if (filename == null || !filename.contains(".")) {
+            return false;
+        }
+        String extension = getFileExtension(filename).toLowerCase();
+        return extension.equals("pdf") ||
+               extension.equals("xls") ||
+               extension.equals("xlsx") ||
+               extension.equals("doc") ||
+               extension.equals("docx");
+    }
+
+    /**
+     * Extrae la extensión del archivo desde el nombre.
+     * Maneja correctamente nombres con múltiples puntos (ej: archivo.reporte.2024.pdf)
+     */
     private String getFileExtension(String filename) {
         if (filename == null || !filename.contains(".")) {
             return "";
         }
         return filename.substring(filename.lastIndexOf(".") + 1);
+    }
+
+    /**
+     * Obtiene la extensión del archivo basándose en el MIME type.
+     * Es más confiable que usar el nombre del archivo.
+     * Retorna el formato en MAYÚSCULAS para cumplir con la restricción CHECK de la base de datos.
+     */
+    private String getFileExtensionFromMimeType(String mimeType, String fallbackFilename) {
+        if (mimeType == null) {
+            // Fallback: intentar extraer del nombre del archivo
+            return getFileExtension(fallbackFilename).toUpperCase();
+        }
+
+        // Mapear MIME types a extensiones en MAYÚSCULAS
+        switch (mimeType) {
+            case "application/pdf":
+                return "PDF";
+            case "application/vnd.ms-excel":
+                return "XLS";
+            case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+                return "XLSX";
+            case "application/msword":
+                return "DOC";
+            case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+                return "DOCX";
+            default:
+                // Si no reconoce el MIME type, intenta extraer del nombre
+                return getFileExtension(fallbackFilename).toUpperCase();
+        }
     }
 
     private FinancialAdminDTO.FinancialReportResponse mapToResponse(FinancialReports report) {
@@ -316,10 +369,7 @@ public class ManageFinancialReportsServiceImpl implements ManageFinancialReports
                 .slug(report.getSlug())
                 .title(report.getTitle())
                 .summary(report.getSummary())
-                .year(report.getYear())
-                .quarter(report.getQuarter())
                 .publishDate(report.getPublishDate())
-                .deliveryType(report.getDeliveryType())
                 .fileFormat(report.getFileFormat())
                 .fileUrl(report.getFileUrl())
                 .fileSizeBytes(report.getFileSizeBytes())

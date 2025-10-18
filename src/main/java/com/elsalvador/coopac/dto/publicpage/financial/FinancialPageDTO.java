@@ -2,6 +2,7 @@ package com.elsalvador.coopac.dto.publicpage.financial;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 public record FinancialPageDTO(
     HeaderDTO header,
@@ -31,13 +32,11 @@ public record FinancialPageDTO(
     ) {}
 
     public record ReportDTO(
+        UUID id,
         String slug,
         String title,
         String summary,
-        Integer year,
-        String quarter,
         LocalDate publishDate,
-        String deliveryType,
         FileDTO file,
         String thumbnailUrl,
         List<String> tags,
