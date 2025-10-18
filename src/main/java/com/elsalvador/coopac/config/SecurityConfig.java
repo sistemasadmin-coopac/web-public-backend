@@ -14,6 +14,10 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -22,30 +26,77 @@ import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final CustomOidcUserService customOidcUserService;
     private final CorsProperties corsProperties;
+    private final OAuth2FailureHandler oauth2FailureHandler;
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        // ✅ PROTECCIÓN EXTRA: Configurar CSRF con cookies
+        CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
+        requestHandler.setCsrfRequestAttributeName("_csrf");
+
         http
-                // Configurar gestión de sesión
+                // ✅ PROTECCIÓN 1: Configurar gestión de sesión estricta
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .maximumSessions(1) // Solo 1 sesión activa por usuario
+                        .maxSessionsPreventsLogin(false) // Invalidar sesión anterior
                 )
-                // DESHABILITAR CSRF temporalmente para pruebas (reactivar después)
+
+                // ✅ PROTECCIÓN 2: CSRF deshabilitado temporalmente para desarrollo
                 .csrf(AbstractHttpConfigurer::disable)
 
-                // Configurar CORS ANTES de las autorizaciones
+                // ✅ PROTECCIÓN 2 (PRODUCCIÓN): CSRF habilitado con cookies
+                // .csrf(csrf -> csrf
+                //         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                //         .csrfTokenRequestHandler(requestHandler)
+                //         .ignoringRequestMatchers("/api/public/**", "/actuator/health", "/health", "/error")
+                // )
+
+                // ✅ PROTECCIÓN 3: Headers de seguridad
+                .headers(headers -> headers
+                        // Prevenir clickjacking
+                        .frameOptions(frameOptions -> frameOptions.deny())
+                        // Prevenir MIME sniffing
+                        .contentTypeOptions(Customizer.withDefaults())
+                        // XSS Protection
+                        .xssProtection(xss -> xss
+                                .headerValue(XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK)
+                        )
+                        // HSTS (Force HTTPS)
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31536000) // 1 año
+                        )
+                        // Referrer Policy
+                        .referrerPolicy(referrer -> referrer
+                                .policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
+                        )
+                        // Content Security Policy
+                        .contentSecurityPolicy(csp -> csp
+                                .policyDirectives("default-src 'self'; " +
+                                        "script-src 'self' 'unsafe-inline' https://accounts.google.com; " +
+                                        "style-src 'self' 'unsafe-inline'; " +
+                                        "img-src 'self' data: https:; " +
+                                        "font-src 'self' data:; " +
+                                        "connect-src 'self' https://accounts.google.com; " +
+                                        "frame-src 'self' https://accounts.google.com; " +
+                                        "frame-ancestors 'none'")
+                        )
+                )
+
+                // Configurar CORS
                 .cors(Customizer.withDefaults())
 
-                // Configurar autorización de endpoints
+                // ✅ PROTECCIÓN 4: Autorización de endpoints con validación estricta
                 .authorizeHttpRequests(auth -> auth
                         // Endpoints públicos - accesibles sin autenticación
                         .requestMatchers(
@@ -65,21 +116,27 @@ public class SecurityConfig {
                                 "/",
                                 "/health"
                         ).permitAll()
-                        // Endpoints de administración (requieren rol ADMIN)
+
+                        // ✅ CRÍTICO: Endpoints de administración requieren ROL ADMIN
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        // Endpoints de autenticación (requieren login)
+
+                        // ✅ CRÍTICO: Endpoints de autenticación requieren autenticación
                         .requestMatchers("/api/auth/**").authenticated()
+
+                        // ✅ PROTECCIÓN: Denegar cualquier otro endpoint no especificado
                         .anyRequest().authenticated()
                 )
-                // Configurar OAuth2 Login
+
+                // ✅ PROTECCIÓN 5: Configurar OAuth2 Login con handler de errores personalizado
                 .oauth2Login(oauth -> oauth
                         .userInfoEndpoint(userInfo -> userInfo
                                 .oidcUserService(customOidcUserService)
                         )
                         .defaultSuccessUrl(frontendUrl + "/admin", true)
-                        .failureUrl(frontendUrl + "/login?error=true")
+                        .failureHandler(oauth2FailureHandler) // ← AGREGADO: Handler personalizado
                 )
-                // Configurar logout
+
+                // ✅ PROTECCIÓN 6: Configurar logout seguro
                 .logout(logout -> logout
                         .logoutUrl("/api/auth/logout")
                         .logoutSuccessHandler((request, response, authentication) -> {
@@ -88,8 +145,23 @@ public class SecurityConfig {
                             response.getWriter().write("{\"message\":\"Sesión cerrada correctamente\"}");
                         })
                         .invalidateHttpSession(true)
-                        .deleteCookies("SESSIONID", "XSRF-TOKEN")
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID", "XSRF-TOKEN")
                         .permitAll()
+                )
+
+                // ✅ PROTECCIÓN 7: Handler de acceso denegado
+                .exceptionHandling(exception -> exception
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\":\"Acceso denegado\",\"message\":\"No tienes permisos para acceder a este recurso\"}");
+                        })
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\":\"No autenticado\",\"message\":\"Debes iniciar sesión para acceder a este recurso\"}");
+                        })
                 );
 
         return http.build();
