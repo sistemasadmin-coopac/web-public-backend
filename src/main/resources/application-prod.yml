@@ -9,7 +9,7 @@ spring:
       client:
         registration:
           google:
-            redirect-uri: "https://coopacelsalvador.com/login/oauth2/code/google"
+            redirect-uri: "https://web-public-backend-prod-312882262715.us-central1.run.app/login/oauth2/code/google"
 
 app:
   frontend:
