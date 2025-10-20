@@ -9,7 +9,31 @@ spring:
       client:
         registration:
           google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope: openid,profile,email
+            authorization-grant-type: authorization_code
             redirect-uri: "https://web-public-backend-prod-312882262715.us-central1.run.app/login/oauth2/code/google"
+        provider:
+          google:
+            issuer-uri: https://accounts.google.com
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+  # Configuración de sesión para producción con HTTPS
+  session:
+    timeout: 3600s
+    cookie:
+      name: SESSIONID
+      http-only: true
+      secure: true          # true en producción (HTTPS)
+      same-site: none       # none permite cookies entre dominios (frontend y backend separados)
+      path: /
+      domain: .us-central1.run.app  # Permite cookies en subdominios de Cloud Run
 
 app:
   frontend:
