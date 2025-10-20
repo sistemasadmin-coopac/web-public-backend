@@ -33,6 +33,7 @@ public class SecurityConfig {
     private final CustomOidcUserService customOidcUserService;
     private final CorsProperties corsProperties;
     private final OAuth2FailureHandler oauth2FailureHandler;
+    private final OAuth2SuccessHandler oauth2SuccessHandler;
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
@@ -127,13 +128,13 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
-                // ✅ PROTECCIÓN 5: Configurar OAuth2 Login con handler de errores personalizado
+                // ✅ PROTECCIÓN 5: Configurar OAuth2 Login con handlers personalizados
                 .oauth2Login(oauth -> oauth
                         .userInfoEndpoint(userInfo -> userInfo
                                 .oidcUserService(customOidcUserService)
                         )
-                        .defaultSuccessUrl(frontendUrl + "/admin", true)
-                        .failureHandler(oauth2FailureHandler) // ← AGREGADO: Handler personalizado
+                        .successHandler(oauth2SuccessHandler) // ← Usar handler personalizado
+                        .failureHandler(oauth2FailureHandler)
                 )
 
                 // ✅ PROTECCIÓN 6: Configurar logout seguro
