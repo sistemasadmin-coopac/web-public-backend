@@ -88,4 +88,13 @@ public interface ProductCategoriesRepository extends JpaRepository<ProductCatego
         where p.category.id = :categoryId
         """)
     boolean hasAssociatedProducts(@Param("categoryId") UUID categoryId);
+
+    /**
+     * Retorna el valor máximo de displayOrder entre las categorías (puede ser null si no hay categorías)
+     */
+    @Query("""
+        select max(pc.displayOrder)
+        from ProductCategories pc
+        """)
+    Integer findMaxDisplayOrder();
 }

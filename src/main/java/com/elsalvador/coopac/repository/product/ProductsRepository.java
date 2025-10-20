@@ -179,4 +179,13 @@ public interface ProductsRepository extends JpaRepository<Products, UUID> {
      * Verifica si existe un slug excluyendo un ID específico (para validación en actualización)
      */
     boolean existsBySlugAndIdNot(String slug, UUID id);
+
+    /**
+     * Retorna el valor máximo de displayOrder entre los productos (puede ser null si no hay productos)
+     */
+    @Query("""
+        select max(p.displayOrder)
+        from Products p
+        """)
+    Integer findMaxDisplayOrder();
 }
