@@ -26,14 +26,14 @@ spring:
 
   # Configuración de sesión para producción con HTTPS
   session:
+    store-type: none  # No usar Redis, usar sesiones en memoria
     timeout: 3600s
     cookie:
-      name: SESSIONID
+      name: JSESSIONID
       http-only: true
       secure: true          # true en producción (HTTPS)
       same-site: none       # none permite cookies entre dominios (frontend y backend separados)
       path: /
-      domain: .us-central1.run.app  # Permite cookies en subdominios de Cloud Run
 
 app:
   frontend:
@@ -44,6 +44,7 @@ cors:
     origins:
       - https://coopacelsalvador.com
       - https://www.coopacelsalvador.com
+      - https://web-public-backend-prod-312882262715.us-central1.run.app
 
 file:
   storage:
@@ -56,3 +57,5 @@ logging:
   level:
     com.elsalvador.coopac: INFO
     org.springframework: INFO
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: DEBUG
