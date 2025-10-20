@@ -59,12 +59,20 @@ public class ManageProductCategoriesServiceImpl implements ManageProductCategori
         // Validar que el slug sea único y generar uno único si es necesario
         String finalSlug = generateUniqueSlugFromProvided(createDTO.slug(), null);
 
+        // Asignar displayOrder por defecto si el request no lo provee
+        Integer displayOrderToUse = createDTO.displayOrder();
+        if (displayOrderToUse == null) {
+            Integer maxOrder = productCategoriesRepository.findMaxDisplayOrder();
+            displayOrderToUse = (maxOrder != null) ? (maxOrder + 1) : 1;
+            log.debug("displayOrder no proporcionado, asignando por defecto: {}", displayOrderToUse);
+        }
+
         ProductCategories category = ProductCategories.builder()
                 .name(createDTO.name())
                 .slug(finalSlug)
                 .description(createDTO.description())
                 .icon(createDTO.icon())
-                .displayOrder(createDTO.displayOrder())
+                .displayOrder(displayOrderToUse)
                 .isActive(createDTO.isActive())
                 .build();
 

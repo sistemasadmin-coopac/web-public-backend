@@ -3,6 +3,8 @@ package com.elsalvador.coopac.service.admin.home.mapper;
 import com.elsalvador.coopac.dto.admin.HomePromotionsAdminDTO;
 import com.elsalvador.coopac.entity.home.HomePromotions;
 import com.elsalvador.coopac.entity.home.HomePromotionsSection;
+import com.elsalvador.coopac.service.storage.FileStorageService;
+import com.elsalvador.coopac.util.ImagePlaceholderUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +20,9 @@ import java.util.stream.Collectors;
 public class HomePromotionsAdminMapper {
 
     private final HomePromotionFeaturesAdminMapper featuresMapper;
+    private final FileStorageService fileStorageService;
+
+    private static final String FOLDER = "home-promotions";
 
     /**
      * Convierte entidad a DTO
@@ -32,6 +37,27 @@ public class HomePromotionsAdminMapper {
                 .collect(Collectors.toList()) :
             Collections.emptyList();
 
+        // Obtener la imagen desde Storage (nombre del archivo es el ID de la promoción)
+        String imageBase64 = null;
+        try {
+            // Buscar la imagen con extensiones comunes
+            String[] extensions = {".jpg", ".jpeg", ".png", ".webp"};
+            for (String ext : extensions) {
+                String fileName = entity.getId().toString() + ext;
+                imageBase64 = fileStorageService.getFileAsBase64(fileName, FOLDER);
+                if (imageBase64 != null) {
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            // Si no existe imagen, continuamos sin ella
+        }
+
+        // Si no hay imagen, usar placeholder genérico
+        if (imageBase64 == null) {
+            imageBase64 = ImagePlaceholderUtil.PROMOTION_PLACEHOLDER;
+        }
+
         return new HomePromotionsAdminDTO(
             entity.getId(),
             entity.getSection() != null ? entity.getSection().getId() : null,
@@ -39,12 +65,11 @@ public class HomePromotionsAdminMapper {
             entity.getTag(),
             entity.getDescription(),
             entity.getHighlightText(),
-            entity.getCtaText(),
-            entity.getCtaUrl(),
             entity.getIsFeatured(),
             entity.getDisplayOrder(),
             entity.getIsActive(),
-            features
+            features,
+            imageBase64
         );
     }
 
@@ -59,8 +84,6 @@ public class HomePromotionsAdminMapper {
         entity.setTag(dto.tag());
         entity.setDescription(dto.description());
         entity.setHighlightText(dto.highlightText());
-        entity.setCtaText(dto.ctaText());
-        entity.setCtaUrl(dto.ctaUrl());
         entity.setIsFeatured(dto.isFeatured());
         entity.setDisplayOrder(dto.displayOrder());
         entity.setIsActive(dto.isActive());

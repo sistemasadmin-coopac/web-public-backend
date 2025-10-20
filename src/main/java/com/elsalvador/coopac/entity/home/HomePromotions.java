@@ -40,12 +40,6 @@ public class HomePromotions {
     @Column(name = "highlight_text")
     private String highlightText;
 
-    @Column(name = "cta_text")
-    private String ctaText;
-
-    @Column(name = "cta_url", length = 1000)
-    private String ctaUrl;
-
     @Builder.Default
     @Column(name = "is_featured", nullable = false)
     private Boolean isFeatured = false;

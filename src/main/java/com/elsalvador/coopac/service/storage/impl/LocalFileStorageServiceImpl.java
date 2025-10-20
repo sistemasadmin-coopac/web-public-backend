@@ -127,4 +127,35 @@ public class LocalFileStorageServiceImpl implements FileStorageService {
             return false;
         }
     }
+
+    @Override
+    public String getFileAsBase64(String fileName, String folder) {
+        try {
+            Path filePath = Paths.get(basePath, folder, fileName);
+
+            if (!Files.exists(filePath)) {
+                log.debug("Archivo no encontrado localmente: {}/{}", folder, fileName);
+                return null;
+            }
+
+            // Leer bytes del archivo
+            byte[] fileBytes = Files.readAllBytes(filePath);
+
+            // Convertir a Base64
+            String base64Content = java.util.Base64.getEncoder().encodeToString(fileBytes);
+
+            // Determinar el tipo MIME basado en la extensión
+            String contentType = Files.probeContentType(filePath);
+            if (contentType == null || contentType.isEmpty()) {
+                contentType = "image/jpeg"; // Por defecto para imágenes
+            }
+
+            // Retornar con prefijo data:
+            return String.format("data:%s;base64,%s", contentType, base64Content);
+
+        } catch (IOException e) {
+            log.error("Error al obtener archivo como Base64: {}/{}", folder, fileName, e);
+            return null;
+        }
+    }
 }

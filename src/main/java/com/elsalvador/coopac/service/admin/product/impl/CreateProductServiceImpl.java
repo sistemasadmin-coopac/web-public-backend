@@ -51,6 +51,14 @@ public class CreateProductServiceImpl implements CreateProductService {
                 "producto"
         );
 
+        // Asignar displayOrder por defecto si el request no lo provee
+        Integer displayOrderToUse = createDTO.displayOrder();
+        if (displayOrderToUse == null) {
+            Integer maxOrder = productsRepository.findMaxDisplayOrder();
+            displayOrderToUse = (maxOrder != null) ? (maxOrder + 1) : 1;
+            log.debug("displayOrder no proporcionado, asignando por defecto: {}", displayOrderToUse);
+        }
+
         // Crear producto principal
         Products product = Products.builder()
                 .category(category)
@@ -61,7 +69,7 @@ public class CreateProductServiceImpl implements CreateProductService {
                 .icon(createDTO.icon())
                 .highlightText(createDTO.highlightText())
                 .isFeatured(createDTO.isFeatured() != null ? createDTO.isFeatured() : false)
-                .displayOrder(createDTO.displayOrder() != null ? createDTO.displayOrder() : 0)
+                .displayOrder(displayOrderToUse)
                 .isActive(true)
                 .build();
 

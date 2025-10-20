@@ -1,6 +1,7 @@
 package com.elsalvador.coopac.service.admin.home;
 
 import com.elsalvador.coopac.dto.admin.HomePromotionsAdminDTO;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -12,12 +13,12 @@ public interface ManageHomePromotionsService {
     /**
      * Crea una nueva promoción
      */
-    HomePromotionsAdminDTO createPromotion(HomePromotionsAdminDTO promotionDTO);
+    HomePromotionsAdminDTO createPromotion(HomePromotionsAdminDTO promotionDTO, MultipartFile image);
 
     /**
      * Actualiza una promoción existente
      */
-    HomePromotionsAdminDTO updatePromotion(HomePromotionsAdminDTO promotionDTO);
+    HomePromotionsAdminDTO updatePromotion(HomePromotionsAdminDTO promotionDTO, MultipartFile image);
 
     /**
      * Elimina una promoción (desactiva)

@@ -144,4 +144,37 @@ public class GcsFileStorageServiceImpl implements FileStorageService {
         String prefix = baseUrl + "/" + bucketName + "/";
         return fileUrl.replace(prefix, "");
     }
+
+    @Override
+    public String getFileAsBase64(String fileName, String folder) {
+        try {
+            String blobName = folder + "/" + fileName;
+            BlobId blobId = BlobId.of(bucketName, blobName);
+            Blob blob = storage.get(blobId);
+
+            if (blob == null || !blob.exists()) {
+                log.debug("Archivo no encontrado en GCS: {}/{}", folder, fileName);
+                return null;
+            }
+
+            // Descargar bytes del archivo
+            byte[] fileBytes = blob.getContent();
+
+            // Convertir a Base64
+            String base64Content = java.util.Base64.getEncoder().encodeToString(fileBytes);
+
+            // Determinar el tipo MIME basado en la extensión
+            String contentType = blob.getContentType();
+            if (contentType == null || contentType.isEmpty()) {
+                contentType = "image/jpeg"; // Por defecto para imágenes
+            }
+
+            // Retornar con prefijo data:
+            return String.format("data:%s;base64,%s", contentType, base64Content);
+
+        } catch (Exception e) {
+            log.error("Error al obtener archivo como Base64 de GCS: {}/{}", folder, fileName, e);
+            return null;
+        }
+    }
 }
