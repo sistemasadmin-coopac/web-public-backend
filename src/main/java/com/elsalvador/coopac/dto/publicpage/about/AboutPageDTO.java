@@ -92,10 +92,10 @@ public record AboutPageDTO(
     public record BoardMemberDTO(
         String fullName,
         String position,
-        String photoUrl,
-        String email,
-        String phone,
+        String photoBase64,
+        String bio,
         String linkedinUrl,
+        String email,
         Integer order
     ) {}
 }

@@ -13,10 +13,9 @@ public record HomePromotionsAdminDTO(
     String tag,
     String description,
     String highlightText,
-    String ctaText,
-    String ctaUrl,
     Boolean isFeatured,
     Integer displayOrder,
     Boolean isActive,
-    List<HomePromotionFeaturesAdminDTO> features
+    List<HomePromotionFeaturesAdminDTO> features,
+    String imageBase64  // Imagen en Base64 solo para lectura/respuesta
 ) {}

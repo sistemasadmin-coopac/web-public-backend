@@ -29,9 +29,6 @@ public class AboutBoardMembers {
     @Column(name = "position", nullable = false)
     private String position;
 
-    @Column(name = "photo_url", length = 1000)
-    private String photoUrl;
-
     @Column(name = "bio", columnDefinition = "TEXT")
     private String bio;
 

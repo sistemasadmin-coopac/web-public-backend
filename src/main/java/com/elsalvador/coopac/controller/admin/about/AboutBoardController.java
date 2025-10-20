@@ -5,8 +5,10 @@ import com.elsalvador.coopac.service.admin.about.ManageAboutBoardService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -23,21 +25,23 @@ public class AboutBoardController {
     /**
      * Crea un nuevo miembro de junta directiva
      */
-    @PostMapping("/members")
+    @PostMapping(value = "/members", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<AboutAdminDTO.AboutBoardMemberDTO> createBoardMember(
-            @Valid @RequestBody AboutAdminDTO.AboutBoardMemberDTO dto) {
-        AboutAdminDTO.AboutBoardMemberDTO created = manageAboutBoardService.createBoardMember(dto);
+            @Valid @ModelAttribute AboutAdminDTO.AboutBoardMemberDTO dto,
+            @RequestParam(value = "photo", required = false) MultipartFile photo) {
+        AboutAdminDTO.AboutBoardMemberDTO created = manageAboutBoardService.createBoardMember(dto, photo);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     /**
      * Actualiza un miembro de junta directiva existente
      */
-    @PutMapping("/members/{id}")
+    @PutMapping(value = "/members/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<AboutAdminDTO.AboutBoardMemberDTO> updateBoardMember(
             @PathVariable UUID id,
-            @Valid @RequestBody AboutAdminDTO.AboutBoardMemberDTO dto) {
-        AboutAdminDTO.AboutBoardMemberDTO updated = manageAboutBoardService.updateBoardMember(id, dto);
+            @Valid @ModelAttribute AboutAdminDTO.AboutBoardMemberDTO dto,
+            @RequestParam(value = "photo", required = false) MultipartFile photo) {
+        AboutAdminDTO.AboutBoardMemberDTO updated = manageAboutBoardService.updateBoardMember(id, dto, photo);
         return ResponseEntity.ok(updated);
     }
 

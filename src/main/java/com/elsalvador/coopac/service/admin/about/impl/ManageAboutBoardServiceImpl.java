@@ -7,11 +7,14 @@ import com.elsalvador.coopac.exception.EntityNotFoundException;
 import com.elsalvador.coopac.repository.about.AboutBoardMembersRepository;
 import com.elsalvador.coopac.repository.about.AboutBoardSectionRepository;
 import com.elsalvador.coopac.service.admin.about.ManageAboutBoardService;
+import com.elsalvador.coopac.service.storage.FileStorageService;
+import com.elsalvador.coopac.util.ImagePlaceholderUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import static com.elsalvador.coopac.config.CacheConfig.ABOUT_PAGE_CACHE;
 
@@ -27,17 +30,19 @@ public class ManageAboutBoardServiceImpl implements ManageAboutBoardService {
 
     private final AboutBoardMembersRepository boardMembersRepository;
     private final AboutBoardSectionRepository boardSectionRepository;
+    private final FileStorageService fileStorageService;
+
+    private static final String FOLDER = "about-board-members";
 
     @Override
     @Transactional
     @CacheEvict(value = ABOUT_PAGE_CACHE, allEntries = true)
-    public AboutAdminDTO.AboutBoardMemberDTO createBoardMember(AboutAdminDTO.AboutBoardMemberDTO dto) {
+    public AboutAdminDTO.AboutBoardMemberDTO createBoardMember(AboutAdminDTO.AboutBoardMemberDTO dto, MultipartFile photo) {
         log.info("Creando nuevo miembro de junta directiva: {}", dto.getFullName());
 
         AboutBoardMembers member = AboutBoardMembers.builder()
                 .fullName(dto.getFullName())
                 .position(dto.getPosition())
-                .photoUrl(dto.getPhotoUrl())
                 .bio(dto.getBio())
                 .linkedinUrl(dto.getLinkedinUrl())
                 .email(dto.getEmail())
@@ -49,29 +54,70 @@ public class ManageAboutBoardServiceImpl implements ManageAboutBoardService {
         AboutBoardMembers savedMember = boardMembersRepository.save(member);
         log.info("Miembro de junta directiva creado exitosamente con ID: {}", savedMember.getId());
 
+        // Almacenar foto si se proporcionó
+        if (photo != null && !photo.isEmpty()) {
+            try {
+                fileStorageService.storeFileWithName(photo, FOLDER, savedMember.getId().toString());
+                log.info("Foto almacenada para miembro ID: {}", savedMember.getId());
+            } catch (Exception e) {
+                log.error("Error al almacenar foto para miembro ID: {}", savedMember.getId(), e);
+            }
+        }
+
         return mapToDTO(savedMember);
     }
 
     @Override
     @Transactional
     @CacheEvict(value = ABOUT_PAGE_CACHE, allEntries = true)
-    public AboutAdminDTO.AboutBoardMemberDTO updateBoardMember(UUID id, AboutAdminDTO.AboutBoardMemberDTO dto) {
+    public AboutAdminDTO.AboutBoardMemberDTO updateBoardMember(UUID id, AboutAdminDTO.AboutBoardMemberDTO dto, MultipartFile photo) {
         log.info("Actualizando miembro de junta directiva con ID: {}", id);
 
         AboutBoardMembers existingMember = boardMembersRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Miembro de junta directiva no encontrado con ID: " + id));
 
-        existingMember.setFullName(dto.getFullName());
-        existingMember.setPosition(dto.getPosition());
-        existingMember.setPhotoUrl(dto.getPhotoUrl());
-        existingMember.setBio(dto.getBio());
-        existingMember.setLinkedinUrl(dto.getLinkedinUrl());
-        existingMember.setEmail(dto.getEmail());
-        existingMember.setPhone(dto.getPhone());
-        existingMember.setDisplayOrder(dto.getDisplayOrder());
-        existingMember.setIsActive(dto.getIsActive());
+        // Actualizar campos solo si vienen en el DTO
+        if (dto.getFullName() != null) {
+            existingMember.setFullName(dto.getFullName());
+        }
+        if (dto.getPosition() != null) {
+            existingMember.setPosition(dto.getPosition());
+        }
+        if (dto.getBio() != null) {
+            existingMember.setBio(dto.getBio());
+        }
+        if (dto.getLinkedinUrl() != null) {
+            existingMember.setLinkedinUrl(dto.getLinkedinUrl());
+        }
+        if (dto.getEmail() != null) {
+            existingMember.setEmail(dto.getEmail());
+        }
+        if (dto.getPhone() != null) {
+            existingMember.setPhone(dto.getPhone());
+        }
+        if (dto.getDisplayOrder() != null) {
+            existingMember.setDisplayOrder(dto.getDisplayOrder());
+        }
+        if (dto.getIsActive() != null) {
+            existingMember.setIsActive(dto.getIsActive());
+        }
 
         AboutBoardMembers updatedMember = boardMembersRepository.save(existingMember);
+
+        // Gestionar foto - solo actualizar si se proporciona una nueva
+        if (photo != null && !photo.isEmpty()) {
+            try {
+                // Eliminar foto anterior si existe
+                deleteMemberPhoto(id);
+
+                // Almacenar nueva foto
+                fileStorageService.storeFileWithName(photo, FOLDER, id.toString());
+                log.info("Foto actualizada para miembro ID: {}", id);
+            } catch (Exception e) {
+                log.error("Error al actualizar foto para miembro ID: {}", id, e);
+            }
+        }
+
         log.info("Miembro de junta directiva actualizado exitosamente");
 
         return mapToDTO(updatedMember);
@@ -86,7 +132,12 @@ public class ManageAboutBoardServiceImpl implements ManageAboutBoardService {
         AboutBoardMembers member = boardMembersRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Miembro de junta directiva no encontrado con ID: " + id));
 
+        // Eliminar foto de Storage antes de eliminar el registro
+        deleteMemberPhoto(id);
+
+        // Eliminar físicamente el registro
         boardMembersRepository.delete(member);
+
         log.info("Miembro de junta directiva eliminado exitosamente");
     }
 
@@ -127,18 +178,59 @@ public class ManageAboutBoardServiceImpl implements ManageAboutBoardService {
                 .build();
     }
 
+    /**
+     * Método auxiliar para eliminar foto de un miembro
+     */
+    private void deleteMemberPhoto(UUID memberId) {
+        try {
+            // Buscar y eliminar foto con extensiones comunes
+            String[] extensions = {".jpg", ".jpeg", ".png", ".webp"};
+            for (String ext : extensions) {
+                String fileName = memberId.toString() + ext;
+                String fileUrl = fileStorageService.getFileUrl(fileName, FOLDER);
+                if (fileStorageService.fileExists(fileUrl)) {
+                    fileStorageService.deleteFile(fileUrl);
+                    log.info("Foto eliminada para miembro ID: {} ({})", memberId, fileName);
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error al eliminar foto para miembro ID: {}", memberId, e);
+        }
+    }
+
     private AboutAdminDTO.AboutBoardMemberDTO mapToDTO(AboutBoardMembers member) {
+        // Obtener la foto desde Storage como Base64
+        String photoBase64 = null;
+        try {
+            String[] extensions = {".jpg", ".jpeg", ".png", ".webp"};
+            for (String ext : extensions) {
+                String fileName = member.getId().toString() + ext;
+                photoBase64 = fileStorageService.getFileAsBase64(fileName, FOLDER);
+                if (photoBase64 != null) {
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            log.debug("No se encontró foto para miembro ID: {}", member.getId());
+        }
+
+        // Si no hay foto, usar placeholder genérico
+        if (photoBase64 == null) {
+            photoBase64 = ImagePlaceholderUtil.PROMOTION_PLACEHOLDER;
+        }
+
         return AboutAdminDTO.AboutBoardMemberDTO.builder()
                 .id(member.getId())
                 .fullName(member.getFullName())
                 .position(member.getPosition())
-                .photoUrl(member.getPhotoUrl())
                 .bio(member.getBio())
                 .linkedinUrl(member.getLinkedinUrl())
                 .email(member.getEmail())
                 .phone(member.getPhone())
                 .displayOrder(member.getDisplayOrder())
                 .isActive(member.getIsActive())
+                .photoBase64(photoBase64)
                 .build();
     }
 

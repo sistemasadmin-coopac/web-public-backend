@@ -3,6 +3,8 @@ package com.elsalvador.coopac.service.publicpages.mapper.about;
 import com.elsalvador.coopac.dto.publicpage.about.AboutPageDTO;
 import com.elsalvador.coopac.entity.about.*;
 import com.elsalvador.coopac.entity.page.PageHeaders;
+import com.elsalvador.coopac.service.storage.FileStorageService;
+import com.elsalvador.coopac.util.ImagePlaceholderUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -17,6 +19,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class AboutMapper {
+
+    private final FileStorageService fileStorageService;
+
+    private static final String FOLDER = "about-board-members";
 
     /**
      * Mapea el header de About usando PageHeaders
@@ -151,10 +157,30 @@ public class AboutMapper {
      * Mapea un miembro del consejo individual
      */
     private AboutPageDTO.BoardMemberDTO mapBoardMember(AboutBoardMembers member) {
+        // Obtener la foto desde Storage como Base64
+        String photoBase64 = null;
+        try {
+            String[] extensions = {".jpg", ".jpeg", ".png", ".webp"};
+            for (String ext : extensions) {
+                String fileName = member.getId().toString() + ext;
+                photoBase64 = fileStorageService.getFileAsBase64(fileName, FOLDER);
+                if (photoBase64 != null) {
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            log.debug("No se encontró foto para miembro ID: {}", member.getId());
+        }
+
+        // Si no hay foto, usar placeholder genérico
+        if (photoBase64 == null) {
+            photoBase64 = ImagePlaceholderUtil.PROMOTION_PLACEHOLDER;
+        }
+
         return new AboutPageDTO.BoardMemberDTO(
                 member.getFullName(),
                 member.getPosition(),
-                member.getPhotoUrl(),
+                photoBase64,
                 member.getBio(),
                 member.getLinkedinUrl(),
                 member.getEmail(),

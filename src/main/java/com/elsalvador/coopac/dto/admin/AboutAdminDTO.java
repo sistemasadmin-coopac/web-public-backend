@@ -246,9 +246,6 @@ public class AboutAdminDTO {
         @Size(max = 255, message = "El cargo no puede exceder 255 caracteres")
         private String position;
 
-        @Size(max = 1000, message = "La URL de la foto no puede exceder 1000 caracteres")
-        private String photoUrl;
-
         private String bio;
 
         @Size(max = 1000, message = "La URL de LinkedIn no puede exceder 1000 caracteres")
@@ -265,6 +262,9 @@ public class AboutAdminDTO {
 
         @NotNull(message = "El estado activo es obligatorio")
         private Boolean isActive;
+
+        // Foto en Base64 solo para lectura/respuesta
+        private String photoBase64;
     }
 
     /**

@@ -50,4 +50,13 @@ public interface FileStorageService {
      * @return true si existe, false si no
      */
     boolean fileExists(String fileUrl);
+
+    /**
+     * Obtiene un archivo como Base64
+     *
+     * @param fileName Nombre del archivo (con extensión)
+     * @param folder Carpeta donde está el archivo
+     * @return Contenido del archivo en Base64 con prefijo data:image, o null si no existe
+     */
+    String getFileAsBase64(String fileName, String folder);
 }

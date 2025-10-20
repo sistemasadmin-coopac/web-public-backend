@@ -4,6 +4,8 @@ import com.elsalvador.coopac.dto.admin.AboutAdminDTO;
 import com.elsalvador.coopac.entity.about.*;
 import com.elsalvador.coopac.repository.about.*;
 import com.elsalvador.coopac.service.admin.about.GetAboutAdminService;
+import com.elsalvador.coopac.service.storage.FileStorageService;
+import com.elsalvador.coopac.util.ImagePlaceholderUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,9 @@ public class GetAboutAdminServiceImpl implements GetAboutAdminService {
     private final AboutImpactMetricsRepository impactMetricsRepository;
     private final AboutBoardSectionRepository boardSectionRepository;
     private final AboutBoardMembersRepository boardMembersRepository;
+    private final FileStorageService fileStorageService;
+
+    private static final String FOLDER = "about-board-members";
 
     @Override
     public AboutAdminDTO.AboutPageResponseDTO getAboutCompleteData() {
@@ -250,11 +255,31 @@ public class GetAboutAdminServiceImpl implements GetAboutAdminService {
      * Mapea entidad BoardMember a DTO
      */
     private AboutAdminDTO.AboutBoardMemberDTO mapBoardMemberToDTO(AboutBoardMembers entity) {
+        // Obtener la foto desde Storage como Base64
+        String photoBase64 = null;
+        try {
+            String[] extensions = {".jpg", ".jpeg", ".png", ".webp"};
+            for (String ext : extensions) {
+                String fileName = entity.getId().toString() + ext;
+                photoBase64 = fileStorageService.getFileAsBase64(fileName, FOLDER);
+                if (photoBase64 != null) {
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            log.debug("No se encontró foto para miembro ID: {}", entity.getId());
+        }
+
+        // Si no hay foto, usar placeholder genérico
+        if (photoBase64 == null) {
+            photoBase64 = ImagePlaceholderUtil.PROMOTION_PLACEHOLDER;
+        }
+
         return AboutAdminDTO.AboutBoardMemberDTO.builder()
                 .id(entity.getId())
                 .fullName(entity.getFullName())
                 .position(entity.getPosition())
-                .photoUrl(entity.getPhotoUrl())
+                .photoBase64(photoBase64)
                 .bio(entity.getBio())
                 .linkedinUrl(entity.getLinkedinUrl())
                 .email(entity.getEmail())
