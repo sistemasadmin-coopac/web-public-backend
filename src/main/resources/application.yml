@@ -85,5 +85,5 @@ file:
     local:
       base-path: ${FILE_STORAGE_PATH:./uploads}
     gcs:
-      bucket-name: ${GCS_BUCKET_NAME}
-      project-id: ${GCP_PROJECT_ID}
+      bucket-name: ${GCS_BUCKET_NAME:}
+      project-id: ${GCP_PROJECT_ID:}
