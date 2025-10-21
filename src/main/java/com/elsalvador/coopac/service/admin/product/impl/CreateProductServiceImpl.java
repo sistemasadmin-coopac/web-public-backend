@@ -163,20 +163,21 @@ public class CreateProductServiceImpl implements CreateProductService {
      * Crea pasos del producto
      */
     private void createSteps(Products product, List<ProductsAdminDTO.CreateProductStepDTO> stepsDTO) {
-        List<ProductSteps> steps = stepsDTO.stream()
-                .map(dto -> ProductSteps.builder()
-                        .product(product)
-                        .title(dto.title())
-                        .description(dto.description())
-                        .icon(dto.icon())
-                        .estimatedTime(dto.estimatedTime())
-                        .displayOrder(dto.displayOrder() != null ? dto.displayOrder() : 0)
-                        .isActive(true)
-                        .build())
-                .collect(Collectors.toList());
-
-        stepsRepository.saveAll(steps);
-        log.debug("Creados {} pasos para producto {}", steps.size(), product.getId());
+        int order = 1;
+        for (ProductsAdminDTO.CreateProductStepDTO dto : stepsDTO) {
+            ProductSteps step = ProductSteps.builder()
+                    .product(product)
+                    .title("Paso " + order)  // Generar título automáticamente
+                    .description(dto.description())
+                    .icon(dto.icon())
+                    .estimatedTime(dto.estimatedTime())
+                    .displayOrder(order)  // Generar orden automáticamente
+                    .isActive(true)
+                    .build();
+            stepsRepository.save(step);
+            order++;
+        }
+        log.debug("Creados {} pasos para producto {}", stepsDTO.size(), product.getId());
     }
 
     /**

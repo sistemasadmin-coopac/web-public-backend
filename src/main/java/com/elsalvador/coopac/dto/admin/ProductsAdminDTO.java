@@ -150,19 +150,15 @@ public class ProductsAdminDTO {
     ) {}
 
     public record CreateProductStepDTO(
-            String title,
             String description,
             String icon,
-            String estimatedTime,
-            Integer displayOrder
+            String estimatedTime
     ) {}
 
     public record UpdateProductStepDTO(
-            String title,
             String description,
             String icon,
             String estimatedTime,
-            Integer displayOrder,
             Boolean isActive
     ) {}
 
