@@ -25,6 +25,23 @@ public interface ProductStepsRepository extends JpaRepository<ProductSteps, UUID
     List<ProductSteps> findEntitiesByProductIdAndIsActiveTrueOrderByDisplayOrderAsc(@Param("productId") UUID productId);
 
     /**
+     * Obtiene todos los pasos de un producto (activos e inactivos) ordenados por display_order
+     */
+    List<ProductSteps> findByProductIdOrderByDisplayOrderAsc(UUID productId);
+
+    /**
+     * Obtiene el máximo displayOrder de un producto
+     */
+    @Query("SELECT COALESCE(MAX(ps.displayOrder), 0) FROM ProductSteps ps WHERE ps.product.id = :productId")
+    Integer findMaxDisplayOrderByProductId(@Param("productId") UUID productId);
+
+    /**
+     * Cuenta el número de pasos de un producto
+     */
+    @Query("SELECT COUNT(ps) FROM ProductSteps ps WHERE ps.product.id = :productId")
+    Long countByProductId(@Param("productId") UUID productId);
+
+    /**
      * Elimina todos los pasos de un producto
      */
     void deleteByProductId(UUID productId);

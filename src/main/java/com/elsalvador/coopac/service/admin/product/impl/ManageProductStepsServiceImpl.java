@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -33,18 +34,26 @@ public class ManageProductStepsServiceImpl implements ManageProductStepsService 
         Products product = productsRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con ID: " + productId));
 
+        // Obtener el siguiente número de orden automáticamente
+        Integer nextOrder = stepsRepository.findMaxDisplayOrderByProductId(productId) + 1;
+
+        // Generar título automáticamente: "Paso 1", "Paso 2", etc.
+        String autoTitle = "Paso " + nextOrder;
+
+        log.info("Generando paso automático: '{}' con displayOrder: {}", autoTitle, nextOrder);
+
         ProductSteps step = ProductSteps.builder()
                 .product(product)
-                .title(createDTO.title())
+                .title(autoTitle)
                 .description(createDTO.description())
                 .icon(createDTO.icon())
                 .estimatedTime(createDTO.estimatedTime())
-                .displayOrder(createDTO.displayOrder() != null ? createDTO.displayOrder() : 0)
+                .displayOrder(nextOrder)
                 .isActive(true)
                 .build();
 
         ProductSteps savedStep = stepsRepository.save(step);
-        log.info("Paso creado con ID: {}", savedStep.getId());
+        log.info("Paso creado con ID: {}, título: '{}', orden: {}", savedStep.getId(), savedStep.getTitle(), savedStep.getDisplayOrder());
 
         return mapToDTO(savedStep);
     }
@@ -56,9 +65,7 @@ public class ManageProductStepsServiceImpl implements ManageProductStepsService 
         ProductSteps step = stepsRepository.findById(stepId)
                 .orElseThrow(() -> new ResourceNotFoundException("Paso no encontrado con ID: " + stepId));
 
-        if (updateDTO.title() != null) {
-            step.setTitle(updateDTO.title());
-        }
+        // Solo actualizar los campos permitidos (NO title ni displayOrder)
         if (updateDTO.description() != null) {
             step.setDescription(updateDTO.description());
         }
@@ -68,15 +75,12 @@ public class ManageProductStepsServiceImpl implements ManageProductStepsService 
         if (updateDTO.estimatedTime() != null) {
             step.setEstimatedTime(updateDTO.estimatedTime());
         }
-        if (updateDTO.displayOrder() != null) {
-            step.setDisplayOrder(updateDTO.displayOrder());
-        }
         if (updateDTO.isActive() != null) {
             step.setIsActive(updateDTO.isActive());
         }
 
         ProductSteps updatedStep = stepsRepository.save(step);
-        log.info("Paso actualizado exitosamente");
+        log.info("Paso actualizado exitosamente (título y orden permanecen sin cambios)");
 
         return mapToDTO(updatedStep);
     }
@@ -85,12 +89,18 @@ public class ManageProductStepsServiceImpl implements ManageProductStepsService 
     public void deleteStep(UUID stepId) {
         log.info("Eliminando paso con ID: {}", stepId);
 
-        if (!stepsRepository.existsById(stepId)) {
-            throw new ResourceNotFoundException("Paso no encontrado con ID: " + stepId);
-        }
+        ProductSteps stepToDelete = stepsRepository.findById(stepId)
+                .orElseThrow(() -> new ResourceNotFoundException("Paso no encontrado con ID: " + stepId));
 
+        UUID productId = stepToDelete.getProduct().getId();
+        Integer deletedOrder = stepToDelete.getDisplayOrder();
+
+        // Eliminar el paso
         stepsRepository.deleteById(stepId);
-        log.info("Paso eliminado exitosamente");
+        log.info("Paso eliminado: '{}' (orden {})", stepToDelete.getTitle(), deletedOrder);
+
+        // Reorganizar los pasos restantes para mantener secuencia sin huecos
+        reorganizeSteps(productId);
     }
 
     @Override
@@ -103,9 +113,33 @@ public class ManageProductStepsServiceImpl implements ManageProductStepsService 
         step.setIsActive(isActive);
         ProductSteps updatedStep = stepsRepository.save(step);
 
-        log.info("Estado del paso {} actualizado a: {}", stepId, isActive);
+        log.info("Estado del paso '{}' actualizado a: {}", step.getTitle(), isActive);
 
         return mapToDTO(updatedStep);
+    }
+
+    /**
+     * Reorganiza los pasos de un producto para mantener la secuencia sin huecos
+     * y actualiza los títulos para que sean "Paso 1", "Paso 2", etc.
+     */
+    private void reorganizeSteps(UUID productId) {
+        log.info("Reorganizando pasos del producto: {}", productId);
+
+        // Obtener todos los pasos ordenados
+        List<ProductSteps> steps = stepsRepository.findByProductIdOrderByDisplayOrderAsc(productId);
+
+        // Reorganizar con numeración consecutiva
+        int newOrder = 1;
+        for (ProductSteps step : steps) {
+            step.setDisplayOrder(newOrder);
+            step.setTitle("Paso " + newOrder);
+            stepsRepository.save(step);
+            log.info("Paso reorganizado: ID={}, nuevo título='{}', nuevo orden={}",
+                    step.getId(), step.getTitle(), newOrder);
+            newOrder++;
+        }
+
+        log.info("Reorganización completada. Total de pasos: {}", steps.size());
     }
 
     /**
