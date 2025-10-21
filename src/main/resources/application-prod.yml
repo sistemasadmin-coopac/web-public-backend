@@ -13,7 +13,7 @@ spring:
             client-secret: ${GOOGLE_CLIENT_SECRET}
             scope: openid,profile,email
             authorization-grant-type: authorization_code
-            redirect-uri: "https://web-public-backend-prod-312882262715.us-central1.run.app/login/oauth2/code/google"
+            redirect-uri: "https://api-web.coopacelsalvador.com/login/oauth2/code/google"
         provider:
           google:
             issuer-uri: https://accounts.google.com
@@ -24,16 +24,25 @@ spring:
       max-file-size: 50MB
       max-request-size: 50MB
 
-  # Configuración de sesión para producción con HTTPS
+  # Configuración de sesión para subdominios compartidos
   session:
-    store-type: none  # No usar Redis, usar sesiones en memoria
+    store-type: none
     timeout: 3600s
     cookie:
       name: JSESSIONID
       http-only: true
-      secure: true          # true en producción (HTTPS)
-      same-site: none       # none permite cookies entre dominios (frontend y backend separados)
+      secure: true          # Obligatorio con SameSite=None
+      same-site: none       # Necesario para cross-site (subdominios diferentes)
       path: /
+      domain: .coopacelsalvador.com  # Compartir cookies entre subdominios
+
+server:
+  servlet:
+    session:
+      cookie:
+        same-site: none
+        secure: true
+        domain: .coopacelsalvador.com
 
 app:
   frontend:
@@ -44,7 +53,7 @@ cors:
     origins:
       - https://coopacelsalvador.com
       - https://www.coopacelsalvador.com
-      - https://web-public-backend-prod-312882262715.us-central1.run.app
+      - https://api-web.coopacelsalvador.com
 
 file:
   storage:
