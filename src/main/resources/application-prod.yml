@@ -31,10 +31,11 @@ spring:
     cookie:
       name: JSESSIONID
       http-only: true
-      secure: true          # Obligatorio con SameSite=None
-      same-site: none       # Necesario para cross-site (subdominios diferentes)
+      secure: true
+      same-site: none
       path: /
-      domain: .coopacelsalvador.com  # Compartir cookies entre subdominios
+      # SIN punto inicial para compatibilidad con Tomcat RFC 6265
+      domain: coopacelsalvador.com
 
 server:
   servlet:
@@ -42,7 +43,8 @@ server:
       cookie:
         same-site: none
         secure: true
-        domain: .coopacelsalvador.com
+        # SIN punto inicial
+        domain: coopacelsalvador.com
 
 app:
   frontend:
