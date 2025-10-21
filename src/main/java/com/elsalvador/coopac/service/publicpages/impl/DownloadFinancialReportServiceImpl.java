@@ -4,7 +4,6 @@ import com.elsalvador.coopac.entity.financial.FinancialReports;
 import com.elsalvador.coopac.exception.EntityNotFoundException;
 import com.elsalvador.coopac.repository.financial.FinancialReportsRepository;
 import com.elsalvador.coopac.service.publicpages.DownloadFinancialReportService;
-import com.elsalvador.coopac.service.storage.FileStorageService;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Storage;
@@ -32,7 +31,6 @@ import java.util.UUID;
 public class DownloadFinancialReportServiceImpl implements DownloadFinancialReportService {
 
     private final FinancialReportsRepository reportsRepository;
-    private final FileStorageService fileStorageService;
 
     @Value("${file.storage.type:local}")
     private String storageType;
@@ -74,7 +72,7 @@ public class DownloadFinancialReportServiceImpl implements DownloadFinancialRepo
             if ("gcs".equalsIgnoreCase(storageType)) {
                 // Para GCS, descargar el archivo directamente usando el SDK
                 String extension = report.getFileFormat().toLowerCase();
-                String fileName = reportId.toString() + "." + extension;
+                String fileName = reportId + "." + extension;
                 String blobName = "financial-reports/" + fileName;
 
                 log.info("📥 Descargando archivo de GCS - Bucket: {}, Path: {}", bucketName, blobName);
@@ -108,7 +106,7 @@ public class DownloadFinancialReportServiceImpl implements DownloadFinancialRepo
             } else {
                 // Para almacenamiento local, construir la ruta directamente
                 String extension = report.getFileFormat().toLowerCase();
-                String fileName = reportId.toString() + "." + extension;
+                String fileName = reportId + "." + extension;
                 Path filePath = Paths.get(localBasePath)
                         .resolve("financial-reports")
                         .resolve(fileName)
