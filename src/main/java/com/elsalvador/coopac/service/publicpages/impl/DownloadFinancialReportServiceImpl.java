@@ -4,9 +4,15 @@ import com.elsalvador.coopac.entity.financial.FinancialReports;
 import com.elsalvador.coopac.exception.EntityNotFoundException;
 import com.elsalvador.coopac.repository.financial.FinancialReportsRepository;
 import com.elsalvador.coopac.service.publicpages.DownloadFinancialReportService;
+import com.elsalvador.coopac.service.storage.FileStorageService;
+import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.BlobId;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -26,12 +32,19 @@ import java.util.UUID;
 public class DownloadFinancialReportServiceImpl implements DownloadFinancialReportService {
 
     private final FinancialReportsRepository reportsRepository;
+    private final FileStorageService fileStorageService;
 
     @Value("${file.storage.type:local}")
     private String storageType;
 
     @Value("${file.storage.local.base-path:uploads}")
     private String localBasePath;
+
+    @Value("${file.storage.gcs.bucket-name:}")
+    private String bucketName;
+
+    @Value("${file.storage.gcs.project-id:}")
+    private String projectId;
 
     @Override
     @Transactional(readOnly = true)
@@ -41,8 +54,8 @@ public class DownloadFinancialReportServiceImpl implements DownloadFinancialRepo
         FinancialReports report = reportsRepository.findById(reportId)
                 .orElseThrow(() -> new EntityNotFoundException("Reporte no encontrado con ID: " + reportId));
 
-        log.info("Reporte encontrado - ID: {}, Título: '{}', isActive: {}, isPublic: {}",
-                reportId, report.getTitle(), report.getIsActive(), report.getIsPublic());
+        log.info("Reporte encontrado - ID: {}, Título: '{}', isActive: {}, isPublic: {}, Storage: {}",
+                reportId, report.getTitle(), report.getIsActive(), report.getIsPublic(), storageType);
 
         // Validar que el reporte esté activo y sea público con mensajes específicos
         if (!report.getIsActive()) {
@@ -58,9 +71,42 @@ public class DownloadFinancialReportServiceImpl implements DownloadFinancialRepo
         try {
             Resource resource;
 
-            if ("local".equalsIgnoreCase(storageType)) {
+            if ("gcs".equalsIgnoreCase(storageType)) {
+                // Para GCS, descargar el archivo directamente usando el SDK
+                String extension = report.getFileFormat().toLowerCase();
+                String fileName = reportId.toString() + "." + extension;
+                String blobName = "financial-reports/" + fileName;
+
+                log.info("📥 Descargando archivo de GCS - Bucket: {}, Path: {}", bucketName, blobName);
+
+                // Usar el SDK de GCS para descargar el archivo
+                Storage storage = StorageOptions.newBuilder()
+                        .setProjectId(projectId)
+                        .build()
+                        .getService();
+
+                BlobId blobId = BlobId.of(bucketName, blobName);
+                Blob blob = storage.get(blobId);
+
+                if (blob == null || !blob.exists()) {
+                    log.error("❌ Archivo no encontrado en GCS: {}/{}", bucketName, blobName);
+                    throw new RuntimeException("El archivo del reporte no existe en el almacenamiento");
+                }
+
+                // Descargar el contenido del blob
+                byte[] content = blob.getContent();
+                log.info("✅ Archivo descargado exitosamente de GCS - Tamaño: {} bytes", content.length);
+
+                // Crear un ByteArrayResource con el contenido descargado
+                resource = new ByteArrayResource(content) {
+                    @Override
+                    public String getFilename() {
+                        return getFileName(reportId);
+                    }
+                };
+
+            } else {
                 // Para almacenamiento local, construir la ruta directamente
-                // Estructura: uploads/financial-reports/{reportId}.{extension}
                 String extension = report.getFileFormat().toLowerCase();
                 String fileName = reportId.toString() + "." + extension;
                 Path filePath = Paths.get(localBasePath)
@@ -72,29 +118,22 @@ public class DownloadFinancialReportServiceImpl implements DownloadFinancialRepo
 
                 resource = new UrlResource(filePath.toUri());
 
-                log.info("Resource creado - Existe: {}, Es legible: {}",
-                        resource.exists(), resource.isReadable());
-            } else {
-                // Para GCS, construir la URL directamente
-                // Estructura: https://storage.googleapis.com/bucket/financial-reports/{reportId}.{extension}
-                String extension = report.getFileFormat().toLowerCase();
-                String gcsUrl = report.getFileUrl(); // Usar la URL de GCS desde la BD
+                if (!resource.exists() || !resource.isReadable()) {
+                    log.error("❌ Archivo no encontrado o no legible en almacenamiento local");
+                    throw new RuntimeException("El archivo del reporte no existe o no es accesible");
+                }
 
-                log.info("Usando URL de GCS: {}", gcsUrl);
-                resource = new UrlResource(gcsUrl);
+                log.info("✅ Archivo encontrado en almacenamiento local");
             }
 
-            if (resource.exists() && resource.isReadable()) {
-                log.info("✅ Archivo encontrado para descarga");
-                return resource;
-            } else {
-                log.error("❌ Archivo no encontrado o no legible");
-                throw new RuntimeException("El archivo del reporte no existe o no es accesible");
-            }
+            return resource;
 
         } catch (MalformedURLException e) {
             log.error("Error al construir URL del archivo para el reporte ID: {}", reportId, e);
             throw new RuntimeException("Error al acceder al archivo: " + e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("Error al descargar archivo del reporte ID: {}", reportId, e);
+            throw new RuntimeException("Error al descargar el archivo: " + e.getMessage(), e);
         }
     }
 
