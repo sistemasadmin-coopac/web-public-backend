@@ -38,9 +38,27 @@ public class GetDataFinancialPageController {
         Resource resource = downloadFinancialReportService.downloadReport(reportId);
         String fileName = downloadFinancialReportService.getFileName(reportId);
 
+        // Determinar el Content-Type basándose en la extensión del archivo
+        String contentType = determineContentType(fileName);
+
+        log.info("Descargando archivo: {} con Content-Type: {}", fileName, contentType);
+
         return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
                 .body(resource);
+    }
+
+    private String determineContentType(String fileName) {
+        String extension = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
+
+        return switch (extension) {
+            case "pdf" -> "application/pdf";
+            case "xls" -> "application/vnd.ms-excel";
+            case "xlsx" -> "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            case "doc" -> "application/msword";
+            case "docx" -> "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            default -> "application/octet-stream";
+        };
     }
 }
