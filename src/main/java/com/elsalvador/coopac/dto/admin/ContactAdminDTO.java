@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * DTOs para administración de contacto
@@ -83,13 +84,10 @@ public class ContactAdminDTO {
     ) {}
 
     public record UpdateContactScheduleDTO(
-            String label,
+            @NotNull(message = "Hora de apertura es requerida")
             LocalTime openTime,
-            LocalTime closeTime,
-            Boolean isClosed,
-            Integer displayOrder,
-            String note,
-            Boolean isActive
+            @NotNull(message = "Hora de cierre es requerida")
+            LocalTime closeTime
     ) {}
 
     // DTOs para ubicaciones

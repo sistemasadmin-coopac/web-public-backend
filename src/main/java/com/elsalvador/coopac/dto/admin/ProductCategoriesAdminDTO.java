@@ -125,7 +125,6 @@ public class ProductCategoriesAdminDTO {
             @Size(max = 50, message = "El icono no puede tener más de 50 caracteres")
             String icon,
 
-            @NotNull(message = "El orden de visualización es obligatorio")
             Integer displayOrder,
 
             @NotNull(message = "El estado activo es obligatorio")

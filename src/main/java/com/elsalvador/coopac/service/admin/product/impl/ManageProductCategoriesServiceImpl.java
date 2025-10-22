@@ -99,7 +99,15 @@ public class ManageProductCategoriesServiceImpl implements ManageProductCategori
         category.setSlug(finalSlug);
         category.setDescription(updateDTO.description());
         category.setIcon(updateDTO.icon());
-        category.setDisplayOrder(updateDTO.displayOrder());
+
+        // Mantener el displayOrder actual si no se proporciona uno nuevo
+        if (updateDTO.displayOrder() != null) {
+            category.setDisplayOrder(updateDTO.displayOrder());
+            log.debug("displayOrder actualizado a: {}", updateDTO.displayOrder());
+        } else {
+            log.debug("displayOrder no proporcionado, se mantiene el actual: {}", category.getDisplayOrder());
+        }
+
         category.setIsActive(updateDTO.isActive());
 
         ProductCategories savedCategory = productCategoriesRepository.save(category);

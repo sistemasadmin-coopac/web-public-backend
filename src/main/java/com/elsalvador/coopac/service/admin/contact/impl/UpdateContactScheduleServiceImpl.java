@@ -3,6 +3,7 @@ package com.elsalvador.coopac.service.admin.contact.impl;
 import com.elsalvador.coopac.dto.admin.ContactAdminDTO;
 import com.elsalvador.coopac.entity.contact.ContactScheduleEntries;
 import com.elsalvador.coopac.exception.ResourceNotFoundException;
+import com.elsalvador.coopac.exception.BusinessValidationException;
 import com.elsalvador.coopac.repository.contact.ContactScheduleEntriesRepository;
 import com.elsalvador.coopac.service.admin.contact.UpdateContactScheduleService;
 import lombok.RequiredArgsConstructor;
@@ -32,32 +33,45 @@ public class UpdateContactScheduleServiceImpl implements UpdateContactScheduleSe
         log.info("Actualizando horario de contacto con ID: {}", id);
 
         ContactScheduleEntries scheduleEntry = contactScheduleRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Entrada de horario no encontrada con ID: " + id));
+                .orElseThrow(() -> {
+                    log.error("Horario de contacto no encontrado con ID: {}", id);
+                    return new ResourceNotFoundException("Entrada de horario no encontrada con ID: " + id);
+                });
 
-        if (updateDTO.label() != null) {
-            scheduleEntry.setLabel(updateDTO.label());
+        // Validar que openTime sea menor que closeTime
+        if (updateDTO.openTime() != null && updateDTO.closeTime() != null) {
+            if (updateDTO.openTime().isAfter(updateDTO.closeTime())) {
+                log.warn("Validación fallida: openTime {} es después que closeTime {}",
+                        updateDTO.openTime(), updateDTO.closeTime());
+                throw new BusinessValidationException(
+                        "openTime",
+                        updateDTO.openTime(),
+                        "La hora de apertura debe ser menor que la hora de cierre"
+                );
+            }
+
+            if (updateDTO.openTime().equals(updateDTO.closeTime())) {
+                log.warn("Validación fallida: openTime y closeTime son iguales: {}", updateDTO.openTime());
+                throw new BusinessValidationException(
+                        "closeTime",
+                        updateDTO.closeTime(),
+                        "La hora de cierre no puede ser igual a la hora de apertura"
+                );
+            }
         }
+
+        // Solo permitir actualización de openTime y closeTime
         if (updateDTO.openTime() != null) {
             scheduleEntry.setOpenTime(updateDTO.openTime());
+            log.debug("Hora de apertura actualizada a: {}", updateDTO.openTime());
         }
         if (updateDTO.closeTime() != null) {
             scheduleEntry.setCloseTime(updateDTO.closeTime());
-        }
-        if (updateDTO.isClosed() != null) {
-            scheduleEntry.setIsClosed(updateDTO.isClosed());
-        }
-        if (updateDTO.displayOrder() != null) {
-            scheduleEntry.setDisplayOrder(updateDTO.displayOrder());
-        }
-        if (updateDTO.note() != null) {
-            scheduleEntry.setNote(updateDTO.note());
-        }
-        if (updateDTO.isActive() != null) {
-            scheduleEntry.setIsActive(updateDTO.isActive());
+            log.debug("Hora de cierre actualizada a: {}", updateDTO.closeTime());
         }
 
         ContactScheduleEntries updatedSchedule = contactScheduleRepository.save(scheduleEntry);
-        log.info("Horario de contacto actualizado exitosamente");
+        log.info("Horario de contacto actualizado exitosamente con ID: {}", id);
 
         return mapToDTO(updatedSchedule);
     }
