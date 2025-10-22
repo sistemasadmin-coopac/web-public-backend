@@ -17,6 +17,11 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+
 import static com.elsalvador.coopac.config.CacheConfig.CONTACT_PAGE_CACHE;
 
 /**
@@ -155,6 +160,7 @@ public class GetDataContactPageServiceImpl implements GetDataContactPageService 
 
     /**
      * Construye la sección de horarios
+     * Calcula automáticamente si está abierto o cerrado según la hora de Perú
      */
     private ContactPageDTO.ScheduleDTO buildScheduleSection() {
         var scheduleEntries = contactScheduleEntriesRepository.findByIsActiveTrueOrderByDisplayOrderAsc();
@@ -163,14 +169,93 @@ public class GetDataContactPageServiceImpl implements GetDataContactPageService 
             log.warn("No se encontraron entradas de horario activas");
         }
 
-        // Obtener nota general de la primera entrada que tenga una
-        String note = scheduleEntries.stream()
-                .filter(entry -> entry.getNote() != null && !entry.getNote().trim().isEmpty())
+        // Obtener hora actual en zona horaria de Perú
+        ZonedDateTime peruTime = ZonedDateTime.now(ZoneId.of("America/Lima"));
+        DayOfWeek todayDayOfWeek = peruTime.getDayOfWeek();
+        LocalTime currentTime = peruTime.toLocalTime();
+
+        log.debug("Hora actual en Perú: {} - Día: {}", currentTime, todayDayOfWeek);
+
+        // Procesar cada entrada y actualizar el note con el estado
+        scheduleEntries.forEach(entry -> {
+            String status = calculateOpenStatus(entry, todayDayOfWeek, currentTime);
+            entry.setNote(status);
+        });
+
+        // Obtener la nota/estado de la entrada actual (hoy)
+        String todayStatus = scheduleEntries.stream()
+                .filter(entry -> isDayMatchingEntry(entry, todayDayOfWeek))
                 .findFirst()
                 .map(ContactScheduleEntries::getNote)
                 .orElse(null);
 
-        return contactMapper.mapSchedule(scheduleEntries, "Horarios de Atención", note);
+        return contactMapper.mapSchedule(scheduleEntries, "Horarios de Atención", todayStatus);
+    }
+
+    /**
+     * Calcula si el negocio está abierto o cerrado para una entrada de horario específica
+     * @param entry La entrada de horario
+     * @param dayOfWeek El día de la semana actual
+     * @param currentTime La hora actual
+     * @return Texto con el estado (Abierto/Cerrado) y detalles
+     */
+    private String calculateOpenStatus(ContactScheduleEntries entry, DayOfWeek dayOfWeek, LocalTime currentTime) {
+        // Si está marcado como cerrado, mostrar "Cerrado"
+        if (entry.getIsClosed()) {
+            return "Cerrado";
+        }
+
+        // Si la entrada es para hoy
+        if (isDayMatchingEntry(entry, dayOfWeek)) {
+            if (entry.getOpenTime() != null && entry.getCloseTime() != null) {
+                if (currentTime.isAfter(entry.getOpenTime()) && currentTime.isBefore(entry.getCloseTime())) {
+                    return String.format("Abierto (hasta las %s)", formatTime(entry.getCloseTime()));
+                } else if (currentTime.isBefore(entry.getOpenTime())) {
+                    return String.format("Cerrado (abre a las %s)", formatTime(entry.getOpenTime()));
+                } else {
+                    return String.format("Cerrado (abierto mañana a las %s)", formatTime(entry.getOpenTime()));
+                }
+            }
+        }
+
+        // Para otros días, solo mostrar horario
+        if (entry.getOpenTime() != null && entry.getCloseTime() != null) {
+            return String.format("De %s a %s", formatTime(entry.getOpenTime()), formatTime(entry.getCloseTime()));
+        }
+
+        return "Información no disponible";
+    }
+
+    /**
+     * Verifica si el día de la semana coincide con la entrada
+     * Asume que existen 3 registros: Lunes-Viernes, Sábado, Domingo
+     */
+    private boolean isDayMatchingEntry(ContactScheduleEntries entry, DayOfWeek dayOfWeek) {
+        String label = entry.getLabel().toLowerCase();
+
+        // Lunes a Viernes
+        if (label.contains("lunes") || label.contains("viernes") || label.contains("semana")) {
+            return dayOfWeek.getValue() >= 1 && dayOfWeek.getValue() <= 5;
+        }
+
+        // Sábado
+        if (label.contains("sábado") || label.contains("sabado")) {
+            return dayOfWeek == DayOfWeek.SATURDAY;
+        }
+
+        // Domingo
+        if (label.contains("domingo")) {
+            return dayOfWeek == DayOfWeek.SUNDAY;
+        }
+
+        return false;
+    }
+
+    /**
+     * Formatea una hora a formato HH:mm
+     */
+    private String formatTime(LocalTime time) {
+        return String.format("%02d:%02d", time.getHour(), time.getMinute());
     }
 
     /**
