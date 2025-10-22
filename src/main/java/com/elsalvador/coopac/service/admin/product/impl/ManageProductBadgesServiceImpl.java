@@ -4,11 +4,13 @@ import com.elsalvador.coopac.dto.admin.ProductsAdminDTO;
 import com.elsalvador.coopac.entity.product.ProductBadges;
 import com.elsalvador.coopac.entity.product.Products;
 import com.elsalvador.coopac.exception.ResourceNotFoundException;
+import com.elsalvador.coopac.config.CacheConfig;
 import com.elsalvador.coopac.repository.product.ProductBadgesRepository;
 import com.elsalvador.coopac.repository.product.ProductsRepository;
 import com.elsalvador.coopac.service.admin.product.ManageProductBadgesService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +29,7 @@ public class ManageProductBadgesServiceImpl implements ManageProductBadgesServic
     private final ProductsRepository productsRepository;
 
     @Override
+    @CacheEvict(value = {CacheConfig.PRODUCT_PAGE_CACHE, CacheConfig.PRODUCT_DETAIL_CACHE, CacheConfig.HOME_PAGE_CACHE}, allEntries = true)
     public ProductsAdminDTO.ProductBadgeDTO addBadge(UUID productId, ProductsAdminDTO.CreateProductBadgeDTO createDTO) {
         log.info("Añadiendo badge al producto: {}", productId);
 
@@ -46,6 +49,7 @@ public class ManageProductBadgesServiceImpl implements ManageProductBadgesServic
     }
 
     @Override
+    @CacheEvict(value = {CacheConfig.PRODUCT_PAGE_CACHE, CacheConfig.PRODUCT_DETAIL_CACHE, CacheConfig.HOME_PAGE_CACHE}, allEntries = true)
     public ProductsAdminDTO.ProductBadgeDTO updateBadge(UUID badgeId, ProductsAdminDTO.UpdateProductBadgeDTO updateDTO) {
         log.info("Actualizando badge con ID: {}", badgeId);
 
@@ -66,6 +70,7 @@ public class ManageProductBadgesServiceImpl implements ManageProductBadgesServic
     }
 
     @Override
+    @CacheEvict(value = {CacheConfig.PRODUCT_PAGE_CACHE, CacheConfig.PRODUCT_DETAIL_CACHE, CacheConfig.HOME_PAGE_CACHE}, allEntries = true)
     public void deleteBadge(UUID badgeId) {
         log.info("Eliminando badge con ID: {}", badgeId);
 

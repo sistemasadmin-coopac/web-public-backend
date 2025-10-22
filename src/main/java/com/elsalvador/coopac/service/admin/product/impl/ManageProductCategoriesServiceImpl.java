@@ -4,11 +4,13 @@ import com.elsalvador.coopac.dto.admin.ProductCategoriesAdminDTO;
 import com.elsalvador.coopac.entity.product.ProductCategories;
 import com.elsalvador.coopac.exception.BusinessValidationException;
 import com.elsalvador.coopac.exception.ResourceNotFoundException;
+import com.elsalvador.coopac.config.CacheConfig;
 import com.elsalvador.coopac.repository.product.ProductCategoriesRepository;
 import com.elsalvador.coopac.service.admin.product.ManageProductCategoriesService;
 import com.elsalvador.coopac.util.SlugGeneratorUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,6 +51,7 @@ public class ManageProductCategoriesServiceImpl implements ManageProductCategori
     }
 
     @Override
+    @CacheEvict(value = {CacheConfig.PRODUCT_PAGE_CACHE, CacheConfig.HOME_PAGE_CACHE}, allEntries = true)
     public ProductCategoriesAdminDTO.ProductCategoryResponseDTO createCategory(
             ProductCategoriesAdminDTO.CreateProductCategoryDTO createDTO) {
         log.debug("Creando nueva categoría con nombre: {}", createDTO.name());
@@ -83,6 +86,7 @@ public class ManageProductCategoriesServiceImpl implements ManageProductCategori
     }
 
     @Override
+    @CacheEvict(value = {CacheConfig.PRODUCT_PAGE_CACHE, CacheConfig.HOME_PAGE_CACHE}, allEntries = true)
     public ProductCategoriesAdminDTO.ProductCategoryResponseDTO updateCategory(
             UUID categoryId, ProductCategoriesAdminDTO.UpdateProductCategoryDTO updateDTO) {
         log.debug("Actualizando categoría con ID: {}", categoryId);
@@ -117,6 +121,7 @@ public class ManageProductCategoriesServiceImpl implements ManageProductCategori
     }
 
     @Override
+    @CacheEvict(value = {CacheConfig.PRODUCT_PAGE_CACHE, CacheConfig.HOME_PAGE_CACHE}, allEntries = true)
     public void deleteCategory(UUID categoryId) {
         log.debug("Eliminando categoría con ID: {}", categoryId);
 
