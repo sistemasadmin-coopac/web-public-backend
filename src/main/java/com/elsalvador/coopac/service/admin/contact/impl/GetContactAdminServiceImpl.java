@@ -18,10 +18,12 @@ import com.elsalvador.coopac.repository.SiteSettingsRepository;
 import com.elsalvador.coopac.repository.contact.ContactChannelsRepository;
 import com.elsalvador.coopac.repository.contact.ContactLocationsRepository;
 import com.elsalvador.coopac.repository.contact.ContactScheduleEntriesRepository;
+import com.elsalvador.coopac.config.CacheConfig;
 import com.elsalvador.coopac.service.admin.contact.GetContactAdminService;
 import com.elsalvador.coopac.service.admin.home.GetHomePromotionsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -266,6 +268,7 @@ public class GetContactAdminServiceImpl implements GetContactAdminService {
 
         @Override
         @Transactional
+        @CacheEvict(value = {CacheConfig.HOME_PAGE_CACHE}, allEntries = true)
         public HomeStatsSectionDTO createSection(HomeStatsSectionDTO dto) {
             log.debug("Creando nueva sección de estadísticas: {}", dto.getTitle());
 
@@ -283,6 +286,7 @@ public class GetContactAdminServiceImpl implements GetContactAdminService {
 
         @Override
         @Transactional
+        @CacheEvict(value = {CacheConfig.HOME_PAGE_CACHE}, allEntries = true)
         public HomeStatsSectionDTO updateSection(UUID id, HomeStatsSectionDTO dto) {
             log.debug("Actualizando sección de estadísticas con ID: {}", id);
 
@@ -301,6 +305,7 @@ public class GetContactAdminServiceImpl implements GetContactAdminService {
 
         @Override
         @Transactional
+        @CacheEvict(value = {CacheConfig.HOME_PAGE_CACHE}, allEntries = true)
         public void deleteSection(UUID id) {
             log.debug("Eliminando sección de estadísticas con ID: {}", id);
 
@@ -366,14 +371,18 @@ public class GetContactAdminServiceImpl implements GetContactAdminService {
 
         @Override
         @Transactional
+        @CacheEvict(value = {CacheConfig.HOME_PAGE_CACHE}, allEntries = true)
         public HomeStatsDTO createStats(HomeStatsDTO dto) {
             log.debug("Creando nueva estadística: {}", dto.getLabel());
+
+            // Calcular automáticamente el siguiente displayOrder
+            Integer displayOrder = homeStatsRepository.findMaxDisplayOrder() + 1;
 
             HomeStats stats = HomeStats.builder()
                     .label(dto.getLabel())
                     .valueText(dto.getValueText())
                     .icon(dto.getIcon())
-                    .displayOrder(dto.getDisplayOrder())
+                    .displayOrder(displayOrder)
                     .isActive(dto.getIsActive())
                     .build();
 
@@ -385,6 +394,7 @@ public class GetContactAdminServiceImpl implements GetContactAdminService {
 
         @Override
         @Transactional
+        @CacheEvict(value = {CacheConfig.HOME_PAGE_CACHE}, allEntries = true)
         public HomeStatsDTO updateStats(UUID id, HomeStatsDTO dto) {
             log.debug("Actualizando estadística con ID: {}", id);
 
@@ -394,7 +404,6 @@ public class GetContactAdminServiceImpl implements GetContactAdminService {
             existingStats.setLabel(dto.getLabel());
             existingStats.setValueText(dto.getValueText());
             existingStats.setIcon(dto.getIcon());
-            existingStats.setDisplayOrder(dto.getDisplayOrder());
             existingStats.setIsActive(dto.getIsActive());
 
             HomeStats updatedStats = homeStatsRepository.save(existingStats);
@@ -405,6 +414,7 @@ public class GetContactAdminServiceImpl implements GetContactAdminService {
 
         @Override
         @Transactional
+        @CacheEvict(value = {CacheConfig.HOME_PAGE_CACHE}, allEntries = true)
         public void deleteStats(UUID id) {
             log.debug("Eliminando estadística con ID: {}", id);
 
@@ -425,7 +435,6 @@ public class GetContactAdminServiceImpl implements GetContactAdminService {
                     .label(stats.getLabel())
                     .valueText(stats.getValueText())
                     .icon(stats.getIcon())
-                    .displayOrder(stats.getDisplayOrder())
                     .isActive(stats.getIsActive())
                     .build();
         }

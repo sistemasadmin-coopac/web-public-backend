@@ -79,6 +79,9 @@ public class SiteSettings {
     @Column(name = "twitter_url", length = 500)
     private String twitterUrl;
 
+    @Column(name = "tiktok_url", length = 500)
+    private String tiktokUrl;
+
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;

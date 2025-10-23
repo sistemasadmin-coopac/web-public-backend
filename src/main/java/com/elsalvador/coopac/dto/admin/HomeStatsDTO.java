@@ -29,8 +29,6 @@ public class HomeStatsDTO {
     @Size(max = 50, message = "El icono no puede exceder 50 caracteres")
     private String icon;
 
-    @NotNull(message = "El orden de visualización es requerido")
-    private Integer displayOrder;
 
     @NotNull(message = "El estado activo es requerido")
     private Boolean isActive;

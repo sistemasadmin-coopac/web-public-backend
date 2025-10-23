@@ -28,8 +28,6 @@ public class FinancialAdminDTO {
         @Size(max = 1000, message = "La descripción no puede exceder 1000 caracteres")
         private String description;
 
-        @NotNull(message = "El orden de visualización es requerido")
-        private Integer displayOrder;
 
         @NotNull(message = "El estado activo es requerido")
         private Boolean isActive;
@@ -72,8 +70,6 @@ public class FinancialAdminDTO {
 
         @NotNull(message = "El estado activo es requerido")
         private Boolean isActive;
-
-        private Integer displayOrder;
     }
 
     @Data
@@ -98,9 +94,6 @@ public class FinancialAdminDTO {
 
         @NotNull(message = "El estado activo es requerido")
         private Boolean isActive;
-
-        @NotNull(message = "El orden de visualización es requerido")
-        private Integer displayOrder;
     }
 
     @Data

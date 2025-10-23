@@ -4,11 +4,13 @@ import com.elsalvador.coopac.dto.admin.ProductsAdminDTO;
 import com.elsalvador.coopac.entity.product.ProductActions;
 import com.elsalvador.coopac.entity.product.Products;
 import com.elsalvador.coopac.exception.ResourceNotFoundException;
+import com.elsalvador.coopac.config.CacheConfig;
 import com.elsalvador.coopac.repository.product.ProductActionsRepository;
 import com.elsalvador.coopac.repository.product.ProductsRepository;
 import com.elsalvador.coopac.service.admin.product.ManageProductActionsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +29,7 @@ public class ManageProductActionsServiceImpl implements ManageProductActionsServ
     private final ProductsRepository productsRepository;
 
     @Override
+    @CacheEvict(value = {CacheConfig.PRODUCT_PAGE_CACHE, CacheConfig.PRODUCT_DETAIL_CACHE, CacheConfig.HOME_PAGE_CACHE}, allEntries = true)
     public ProductsAdminDTO.ProductActionDTO addAction(UUID productId, ProductsAdminDTO.CreateProductActionDTO createDTO) {
         log.info("Añadiendo acción al producto: {}", productId);
 
@@ -49,6 +52,7 @@ public class ManageProductActionsServiceImpl implements ManageProductActionsServ
     }
 
     @Override
+    @CacheEvict(value = {CacheConfig.PRODUCT_PAGE_CACHE, CacheConfig.PRODUCT_DETAIL_CACHE, CacheConfig.HOME_PAGE_CACHE}, allEntries = true)
     public ProductsAdminDTO.ProductActionDTO updateAction(UUID actionId, ProductsAdminDTO.UpdateProductActionDTO updateDTO) {
         log.info("Actualizando acción con ID: {}", actionId);
 
@@ -78,6 +82,7 @@ public class ManageProductActionsServiceImpl implements ManageProductActionsServ
     }
 
     @Override
+    @CacheEvict(value = {CacheConfig.PRODUCT_PAGE_CACHE, CacheConfig.PRODUCT_DETAIL_CACHE, CacheConfig.HOME_PAGE_CACHE}, allEntries = true)
     public void deleteAction(UUID actionId) {
         log.info("Eliminando acción con ID: {}", actionId);
 

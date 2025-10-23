@@ -11,11 +11,11 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.elsalvador.coopac.config.CacheConfig.HOME_PAGE_CACHE;
-
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static com.elsalvador.coopac.config.CacheConfig.HOME_PAGE_CACHE;
 
 /**
  * Implementación del servicio para gestionar estadísticas del home
@@ -58,15 +58,18 @@ public class HomeStatsServiceImpl implements HomeStatsService {
 
     @Override
     @Transactional
-    @CacheEvict(value = HOME_PAGE_CACHE, allEntries = true)
+    @CacheEvict(value = {HOME_PAGE_CACHE}, allEntries = true)
     public HomeStatsDTO createStats(HomeStatsDTO dto) {
         log.debug("Creando nueva estadística: {}", dto.getLabel());
+
+        // Calcular automáticamente el siguiente displayOrder
+        Integer displayOrder = homeStatsRepository.findMaxDisplayOrder() + 1;
 
         HomeStats stats = HomeStats.builder()
                 .label(dto.getLabel())
                 .valueText(dto.getValueText())
                 .icon(dto.getIcon())
-                .displayOrder(dto.getDisplayOrder())
+                .displayOrder(displayOrder)
                 .isActive(dto.getIsActive())
                 .build();
 
@@ -78,7 +81,7 @@ public class HomeStatsServiceImpl implements HomeStatsService {
 
     @Override
     @Transactional
-    @CacheEvict(value = HOME_PAGE_CACHE, allEntries = true)
+    @CacheEvict(value = {HOME_PAGE_CACHE}, allEntries = true)
     public HomeStatsDTO updateStats(UUID id, HomeStatsDTO dto) {
         log.debug("Actualizando estadística con ID: {}", id);
 
@@ -88,7 +91,6 @@ public class HomeStatsServiceImpl implements HomeStatsService {
         existingStats.setLabel(dto.getLabel());
         existingStats.setValueText(dto.getValueText());
         existingStats.setIcon(dto.getIcon());
-        existingStats.setDisplayOrder(dto.getDisplayOrder());
         existingStats.setIsActive(dto.getIsActive());
 
         HomeStats updatedStats = homeStatsRepository.save(existingStats);
@@ -99,7 +101,7 @@ public class HomeStatsServiceImpl implements HomeStatsService {
 
     @Override
     @Transactional
-    @CacheEvict(value = HOME_PAGE_CACHE, allEntries = true)
+    @CacheEvict(value = {HOME_PAGE_CACHE}, allEntries = true)
     public void deleteStats(UUID id) {
         log.debug("Eliminando estadística con ID: {}", id);
 
@@ -120,7 +122,6 @@ public class HomeStatsServiceImpl implements HomeStatsService {
                 .label(stats.getLabel())
                 .valueText(stats.getValueText())
                 .icon(stats.getIcon())
-                .displayOrder(stats.getDisplayOrder())
                 .isActive(stats.getIsActive())
                 .build();
     }

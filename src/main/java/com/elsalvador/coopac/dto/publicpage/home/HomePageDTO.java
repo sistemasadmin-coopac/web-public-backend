@@ -2,7 +2,8 @@ package com.elsalvador.coopac.dto.publicpage.home;
 import java.util.List;
 public record HomePageDTO(
     HeaderDTO header,
-    SectionsDTO sections
+    SectionsDTO sections,
+    SiteSettingsDTO siteSettings
 ) {
     public record HeaderDTO(
         String badgeText,
@@ -93,5 +94,27 @@ public record HomePageDTO(
     public record CtaLinkDTO(
         String text,
         String url
+    ) {}
+    public record SiteSettingsDTO(
+        String companyName,
+        String logoUrl,
+        String logoAlt,
+        String phoneMain,
+        String phoneSecondary,
+        String whatsappNumber,
+        String whatsappUrl,
+        String emailMain,
+        String emailSupport,
+        String addressLine1,
+        String addressLine2,
+        String city,
+        String state,
+        String country,
+        String googleMapsUrl,
+        String facebookUrl,
+        String instagramUrl,
+        String linkedinUrl,
+        String twitterUrl,
+        String tiktokUrl
     ) {}
 }

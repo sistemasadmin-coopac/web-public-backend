@@ -50,9 +50,6 @@ public class UpdateHomeCtaBlocksServiceImpl implements UpdateHomeCtaBlocksServic
         if (updateDTO.buttonUrl() != null) {
             ctaBlock.setButtonUrl(updateDTO.buttonUrl());
         }
-        if (updateDTO.displayOrder() != null) {
-            ctaBlock.setDisplayOrder(updateDTO.displayOrder());
-        }
         if (updateDTO.isActive() != null) {
             ctaBlock.setIsActive(updateDTO.isActive());
         }
@@ -75,7 +72,6 @@ public class UpdateHomeCtaBlocksServiceImpl implements UpdateHomeCtaBlocksServic
                 ctaBlock.getSubtitle(),
                 ctaBlock.getButtonText(),
                 ctaBlock.getButtonUrl(),
-                ctaBlock.getDisplayOrder(),
                 ctaBlock.getIsActive()
         );
     }

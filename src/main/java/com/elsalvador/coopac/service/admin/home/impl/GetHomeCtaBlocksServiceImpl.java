@@ -46,7 +46,6 @@ public class GetHomeCtaBlocksServiceImpl implements GetHomeCtaBlocksService {
                 ctaBlock.getSubtitle(),
                 ctaBlock.getButtonText(),
                 ctaBlock.getButtonUrl(),
-                ctaBlock.getDisplayOrder(),
                 ctaBlock.getIsActive()
         );
     }

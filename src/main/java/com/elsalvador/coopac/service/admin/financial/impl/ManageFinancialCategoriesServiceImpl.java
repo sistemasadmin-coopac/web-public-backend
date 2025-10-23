@@ -40,11 +40,8 @@ public class ManageFinancialCategoriesServiceImpl implements ManageFinancialCate
         // Generar slug automáticamente desde el nombre
         String slug = slugGeneratorUtil.generateUniqueSlug(dto.getName(), categoriesRepository::existsBySlug, "categoria");
 
-        // Obtener el siguiente displayOrder si no se especifica
-        Integer displayOrder = dto.getDisplayOrder();
-        if (displayOrder == null || displayOrder == 0) {
-            displayOrder = categoriesRepository.findMaxDisplayOrder() + 1;
-        }
+        // Calcular automáticamente el siguiente displayOrder
+        Integer displayOrder = categoriesRepository.findMaxDisplayOrder() + 1;
 
         // Crear entidad
         FinancialReportCategories category = FinancialReportCategories.builder()
@@ -84,7 +81,6 @@ public class ManageFinancialCategoriesServiceImpl implements ManageFinancialCate
 
         // Actualizar campos
         existingCategory.setDescription(dto.getDescription());
-        existingCategory.setDisplayOrder(dto.getDisplayOrder());
         existingCategory.setIsActive(dto.getIsActive());
 
         FinancialReportCategories updatedCategory = categoriesRepository.save(existingCategory);

@@ -1,5 +1,6 @@
 package com.elsalvador.coopac.service.admin.home.impl;
 
+import com.elsalvador.coopac.config.CacheConfig;
 import com.elsalvador.coopac.dto.admin.HomePromotionFeaturesAdminDTO;
 import com.elsalvador.coopac.entity.home.HomePromotionFeatures;
 import com.elsalvador.coopac.entity.home.HomePromotions;
@@ -9,6 +10,7 @@ import com.elsalvador.coopac.service.admin.home.ManageHomePromotionFeaturesServi
 import com.elsalvador.coopac.service.admin.home.mapper.HomePromotionFeaturesAdminMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +42,7 @@ public class ManageHomePromotionFeaturesServiceImpl implements ManageHomePromoti
     }
 
     @Override
+    @CacheEvict(value = CacheConfig.HOME_PAGE_CACHE, allEntries = true)
     public HomePromotionFeaturesAdminDTO createFeature(HomePromotionFeaturesAdminDTO featureDTO) {
         log.info("Creando nueva característica para promoción ID: {}", featureDTO.promotionId());
 
@@ -50,10 +53,13 @@ public class ManageHomePromotionFeaturesServiceImpl implements ManageHomePromoti
             throw new RuntimeException("Promotion not found with ID: " + featureDTO.promotionId());
         }
 
+        // Calcular automáticamente el siguiente displayOrder
+        Integer displayOrder = repository.findMaxDisplayOrder() + 1;
+
         HomePromotionFeatures newFeature = HomePromotionFeatures.builder()
                 .promotion(promotion.get())
                 .featureText(featureDTO.featureText())
-                .displayOrder(featureDTO.displayOrder() != null ? featureDTO.displayOrder() : 0)
+                .displayOrder(displayOrder)
                 .build();
 
         HomePromotionFeatures savedFeature = repository.save(newFeature);
@@ -63,6 +69,7 @@ public class ManageHomePromotionFeaturesServiceImpl implements ManageHomePromoti
     }
 
     @Override
+    @CacheEvict(value = CacheConfig.HOME_PAGE_CACHE, allEntries = true)
     public HomePromotionFeaturesAdminDTO updateFeature(HomePromotionFeaturesAdminDTO featureDTO) {
         log.info("Actualizando característica con ID: {}", featureDTO.id());
 
@@ -91,6 +98,7 @@ public class ManageHomePromotionFeaturesServiceImpl implements ManageHomePromoti
     }
 
     @Override
+    @CacheEvict(value = CacheConfig.HOME_PAGE_CACHE, allEntries = true)
     public void deleteFeature(UUID featureId) {
         log.info("Eliminando característica con ID: {}", featureId);
 
@@ -105,6 +113,7 @@ public class ManageHomePromotionFeaturesServiceImpl implements ManageHomePromoti
     }
 
     @Override
+    @CacheEvict(value = CacheConfig.HOME_PAGE_CACHE, allEntries = true)
     public List<HomePromotionFeaturesAdminDTO> updatePromotionFeatures(UUID promotionId, List<HomePromotionFeaturesAdminDTO> features) {
         log.info("Actualizando todas las características para promoción ID: {}", promotionId);
 
@@ -119,13 +128,16 @@ public class ManageHomePromotionFeaturesServiceImpl implements ManageHomePromoti
         List<HomePromotionFeatures> existingFeatures = repository.findByPromotionIdOrderByDisplayOrderAsc(promotionId);
         repository.deleteAll(existingFeatures);
 
-        // Crear las nuevas características
+        // Crear las nuevas características con displayOrder calculado automáticamente
         List<HomePromotionFeatures> newFeatures = features.stream()
-                .map(featureDTO -> HomePromotionFeatures.builder()
-                        .promotion(promotion.get())
-                        .featureText(featureDTO.featureText())
-                        .displayOrder(featureDTO.displayOrder() != null ? featureDTO.displayOrder() : 0)
-                        .build())
+                .map((featureDTO) -> {
+                    Integer displayOrder = repository.findMaxDisplayOrder() + 1;
+                    return HomePromotionFeatures.builder()
+                            .promotion(promotion.get())
+                            .featureText(featureDTO.featureText())
+                            .displayOrder(displayOrder)
+                            .build();
+                })
                 .collect(Collectors.toList());
 
         List<HomePromotionFeatures> savedFeatures = repository.saveAll(newFeatures);
