@@ -52,7 +52,7 @@ public class ManageHomePromotionsServiceImpl implements ManageHomePromotionsServ
                 .description(promotionDTO.description())
                 .highlightText(promotionDTO.highlightText())
                 .isFeatured(promotionDTO.isFeatured() != null ? promotionDTO.isFeatured() : false)
-                .displayOrder(promotionDTO.displayOrder() != null ? promotionDTO.displayOrder() : 0)
+                .displayOrder(repository.findMaxDisplayOrder() + 1)
                 .isActive(promotionDTO.isActive() != null ? promotionDTO.isActive() : true)
                 .build();
 
@@ -112,9 +112,6 @@ public class ManageHomePromotionsServiceImpl implements ManageHomePromotionsServ
         }
         if (promotionDTO.isFeatured() != null) {
             existingPromotion.setIsFeatured(promotionDTO.isFeatured());
-        }
-        if (promotionDTO.displayOrder() != null) {
-            existingPromotion.setDisplayOrder(promotionDTO.displayOrder());
         }
         if (promotionDTO.isActive() != null) {
             existingPromotion.setIsActive(promotionDTO.isActive());

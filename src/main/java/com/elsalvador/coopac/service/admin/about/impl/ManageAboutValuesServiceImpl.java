@@ -34,11 +34,14 @@ public class ManageAboutValuesServiceImpl implements ManageAboutValuesService {
     public AboutAdminDTO.AboutValueDTO createValue(AboutAdminDTO.AboutValueDTO dto) {
         log.info("Creando nuevo valor: {}", dto.getTitle());
 
+        // Calcular automáticamente el siguiente displayOrder
+        Integer displayOrder = valuesRepository.findMaxDisplayOrder() + 1;
+
         AboutValues value = AboutValues.builder()
                 .icon(dto.getIcon())
                 .title(dto.getTitle())
                 .description(dto.getDescription())
-                .displayOrder(dto.getDisplayOrder())
+                .displayOrder(displayOrder)
                 .isActive(dto.getIsActive())
                 .build();
 
@@ -60,7 +63,6 @@ public class ManageAboutValuesServiceImpl implements ManageAboutValuesService {
         existingValue.setIcon(dto.getIcon());
         existingValue.setTitle(dto.getTitle());
         existingValue.setDescription(dto.getDescription());
-        existingValue.setDisplayOrder(dto.getDisplayOrder());
         existingValue.setIsActive(dto.getIsActive());
 
         AboutValues updatedValue = valuesRepository.save(existingValue);

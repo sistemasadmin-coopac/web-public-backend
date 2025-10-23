@@ -2,6 +2,7 @@ package com.elsalvador.coopac.repository;
 
 import com.elsalvador.coopac.entity.home.HomePromotions;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -26,4 +27,11 @@ public interface HomePromotionsRepository extends JpaRepository<HomePromotions, 
      * @return lista de todas las promociones ordenadas (destacadas primero)
      */
     List<HomePromotions> findBySectionIdOrderByIsFeaturedDescDisplayOrderAsc(UUID sectionId);
+
+    /**
+     * Obtiene el máximo displayOrder de las promociones
+     * @return el valor máximo de displayOrder o 0 si no hay registros
+     */
+    @Query("SELECT COALESCE(MAX(h.displayOrder), 0) FROM HomePromotions h")
+    Integer findMaxDisplayOrder();
 }

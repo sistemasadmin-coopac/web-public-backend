@@ -17,7 +17,6 @@ public class HomeCtaBlocksAdminDTO {
             String subtitle,
             String buttonText,
             String buttonUrl,
-            Integer displayOrder,
             Boolean isActive
     ) {}
 
@@ -29,7 +28,6 @@ public class HomeCtaBlocksAdminDTO {
             String subtitle,
             String buttonText,
             String buttonUrl,
-            Integer displayOrder,
             Boolean isActive
     ) {}
 }

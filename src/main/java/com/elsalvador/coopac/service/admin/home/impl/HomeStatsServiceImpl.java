@@ -15,9 +15,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.elsalvador.coopac.config.CacheConfig.*;
-import static com.elsalvador.coopac.config.CacheConfig.FINANCIAL_PAGE_CACHE;
-import static com.elsalvador.coopac.config.CacheConfig.PRODUCT_PAGE_CACHE;
+import static com.elsalvador.coopac.config.CacheConfig.HOME_PAGE_CACHE;
 
 /**
  * Implementación del servicio para gestionar estadísticas del home
@@ -64,11 +62,14 @@ public class HomeStatsServiceImpl implements HomeStatsService {
     public HomeStatsDTO createStats(HomeStatsDTO dto) {
         log.debug("Creando nueva estadística: {}", dto.getLabel());
 
+        // Calcular automáticamente el siguiente displayOrder
+        Integer displayOrder = homeStatsRepository.findMaxDisplayOrder() + 1;
+
         HomeStats stats = HomeStats.builder()
                 .label(dto.getLabel())
                 .valueText(dto.getValueText())
                 .icon(dto.getIcon())
-                .displayOrder(dto.getDisplayOrder())
+                .displayOrder(displayOrder)
                 .isActive(dto.getIsActive())
                 .build();
 
@@ -90,7 +91,6 @@ public class HomeStatsServiceImpl implements HomeStatsService {
         existingStats.setLabel(dto.getLabel());
         existingStats.setValueText(dto.getValueText());
         existingStats.setIcon(dto.getIcon());
-        existingStats.setDisplayOrder(dto.getDisplayOrder());
         existingStats.setIsActive(dto.getIsActive());
 
         HomeStats updatedStats = homeStatsRepository.save(existingStats);
@@ -122,7 +122,6 @@ public class HomeStatsServiceImpl implements HomeStatsService {
                 .label(stats.getLabel())
                 .valueText(stats.getValueText())
                 .icon(stats.getIcon())
-                .displayOrder(stats.getDisplayOrder())
                 .isActive(stats.getIsActive())
                 .build();
     }

@@ -20,8 +20,7 @@ public class HomePromotionFeaturesAdminMapper {
         return new HomePromotionFeaturesAdminDTO(
             entity.getId(),
             entity.getPromotion() != null ? entity.getPromotion().getId() : null,
-            entity.getFeatureText(),
-            entity.getDisplayOrder()
+            entity.getFeatureText()
         );
     }
 
@@ -33,6 +32,5 @@ public class HomePromotionFeaturesAdminMapper {
 
         entity.setPromotion(promotion);
         entity.setFeatureText(dto.featureText());
-        entity.setDisplayOrder(dto.displayOrder());
     }
 }

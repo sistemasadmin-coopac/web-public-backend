@@ -8,6 +8,5 @@ import java.util.UUID;
 public record HomePromotionFeaturesAdminDTO(
     UUID id,
     UUID promotionId,
-    String featureText,
-    Integer displayOrder
+    String featureText
 ) {}

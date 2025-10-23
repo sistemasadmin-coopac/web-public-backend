@@ -66,7 +66,6 @@ public class HomePromotionsAdminMapper {
             entity.getDescription(),
             entity.getHighlightText(),
             entity.getIsFeatured(),
-            entity.getDisplayOrder(),
             entity.getIsActive(),
             features,
             imageBase64
@@ -85,7 +84,6 @@ public class HomePromotionsAdminMapper {
         entity.setDescription(dto.description());
         entity.setHighlightText(dto.highlightText());
         entity.setIsFeatured(dto.isFeatured());
-        entity.setDisplayOrder(dto.displayOrder());
         entity.setIsActive(dto.isActive());
     }
 }

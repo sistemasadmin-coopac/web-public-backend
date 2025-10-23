@@ -375,11 +375,14 @@ public class GetContactAdminServiceImpl implements GetContactAdminService {
         public HomeStatsDTO createStats(HomeStatsDTO dto) {
             log.debug("Creando nueva estadística: {}", dto.getLabel());
 
+            // Calcular automáticamente el siguiente displayOrder
+            Integer displayOrder = homeStatsRepository.findMaxDisplayOrder() + 1;
+
             HomeStats stats = HomeStats.builder()
                     .label(dto.getLabel())
                     .valueText(dto.getValueText())
                     .icon(dto.getIcon())
-                    .displayOrder(dto.getDisplayOrder())
+                    .displayOrder(displayOrder)
                     .isActive(dto.getIsActive())
                     .build();
 
@@ -401,7 +404,6 @@ public class GetContactAdminServiceImpl implements GetContactAdminService {
             existingStats.setLabel(dto.getLabel());
             existingStats.setValueText(dto.getValueText());
             existingStats.setIcon(dto.getIcon());
-            existingStats.setDisplayOrder(dto.getDisplayOrder());
             existingStats.setIsActive(dto.getIsActive());
 
             HomeStats updatedStats = homeStatsRepository.save(existingStats);
@@ -433,7 +435,6 @@ public class GetContactAdminServiceImpl implements GetContactAdminService {
                     .label(stats.getLabel())
                     .valueText(stats.getValueText())
                     .icon(stats.getIcon())
-                    .displayOrder(stats.getDisplayOrder())
                     .isActive(stats.getIsActive())
                     .build();
         }

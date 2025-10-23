@@ -58,11 +58,8 @@ public class ManageFinancialReportsServiceImpl implements ManageFinancialReports
         // Generar slug automáticamente desde el título
         String slug = slugGeneratorUtil.generateUniqueSlug(dto.getTitle(), reportsRepository::existsBySlug, "reporte");
 
-        // Obtener el siguiente displayOrder si no se especifica
-        Integer displayOrder = dto.getDisplayOrder();
-        if (displayOrder == null || displayOrder == 0) {
-            displayOrder = reportsRepository.findMaxDisplayOrder() + 1;
-        }
+        // Calcular automáticamente el siguiente displayOrder
+        Integer displayOrder = reportsRepository.findMaxDisplayOrder() + 1;
 
         // Calcular fileFormat usando MIME type
         String fileFormat = getFileExtensionFromMimeType(file.getContentType(), file.getOriginalFilename());
@@ -150,7 +147,6 @@ public class ManageFinancialReportsServiceImpl implements ManageFinancialReports
         existingReport.setTags(dto.getTags());
         existingReport.setIsPublic(dto.getIsPublic());
         existingReport.setIsActive(dto.getIsActive());
-        existingReport.setDisplayOrder(dto.getDisplayOrder());
 
         // Procesar archivo principal si se proporciona uno nuevo
         if (file != null && !file.isEmpty()) {
