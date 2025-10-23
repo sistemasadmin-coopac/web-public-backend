@@ -51,8 +51,9 @@ public class GetDataHomePageServiceImpl implements GetDataHomePageService {
 
         var header = buildHeader();
         var sections = buildSections();
+        var siteSettings = buildSiteSettings();
 
-        return new HomePageDTO(header, sections);
+        return new HomePageDTO(header, sections, siteSettings);
     }
 
     /**
@@ -60,8 +61,8 @@ public class GetDataHomePageServiceImpl implements GetDataHomePageService {
      */
     private HomePageDTO.HeaderDTO buildHeader() {
         var pageHeader = pageHeadersRepository
-            .findFirstByPageSlugAndIsActiveTrueOrderByDisplayOrderAsc(PageSlug.HOME.getValue())
-            .orElse(null);
+                .findFirstByPageSlugAndIsActiveTrueOrderByDisplayOrderAsc(PageSlug.HOME.getValue())
+                .orElse(null);
 
         if (pageHeader == null) {
             log.warn("No se encontró header activo para la página home");
@@ -69,7 +70,7 @@ public class GetDataHomePageServiceImpl implements GetDataHomePageService {
         }
 
         var headerCards = pageHeaderCardsRepository
-            .findByHeaderIdAndIsActiveTrueOrderByDisplayOrderAsc(pageHeader.getId());
+                .findByHeaderIdAndIsActiveTrueOrderByDisplayOrderAsc(pageHeader.getId());
 
         return pageHeaderMapper.toHeaderDTO(pageHeader, headerCards);
     }
@@ -79,10 +80,10 @@ public class GetDataHomePageServiceImpl implements GetDataHomePageService {
      */
     private HomePageDTO.SectionsDTO buildSections() {
         return new HomePageDTO.SectionsDTO(
-            buildPromotionsSection(),
-            buildProductsSection(),
-            buildStatsSection(),
-            buildCtasSection()
+                buildPromotionsSection(),
+                buildProductsSection(),
+                buildStatsSection(),
+                buildCtasSection()
         );
     }
 
@@ -91,8 +92,8 @@ public class GetDataHomePageServiceImpl implements GetDataHomePageService {
      */
     private HomePageDTO.PromotionsSectionDTO buildPromotionsSection() {
         var promotionsSection = homePromotionsSectionRepository
-            .findFirstByIsActiveTrue()
-            .orElse(null);
+                .findFirstByIsActiveTrue()
+                .orElse(null);
 
         if (promotionsSection == null) {
             log.warn("No se encontró sección de promociones activa");
@@ -100,7 +101,7 @@ public class GetDataHomePageServiceImpl implements GetDataHomePageService {
         }
 
         var promotions = homePromotionsRepository
-            .findBySectionIdAndIsActiveTrueOrderByIsFeaturedDescDisplayOrderAsc(promotionsSection.getId());
+                .findBySectionIdAndIsActiveTrueOrderByIsFeaturedDescDisplayOrderAsc(promotionsSection.getId());
 
         return promotionsMapper.toPromotionsSectionDTO(promotionsSection, promotions);
     }
@@ -124,8 +125,8 @@ public class GetDataHomePageServiceImpl implements GetDataHomePageService {
      */
     private HomePageDTO.StatsSectionDTO buildStatsSection() {
         var statsSection = homeStatsSectionRepository
-            .findFirstByIsActiveTrue()
-            .orElse(null);
+                .findFirstByIsActiveTrue()
+                .orElse(null);
 
         if (statsSection == null) {
             log.warn("No se encontró sección de estadísticas activa");
@@ -142,16 +143,53 @@ public class GetDataHomePageServiceImpl implements GetDataHomePageService {
      */
     private HomePageDTO.CtasSectionDTO buildCtasSection() {
         var allCtas = homeCtaBlocksRepository
-            .findByIsActiveTrueOrderByPositionAscDisplayOrderAsc();
+                .findByIsActiveTrueOrderByPositionAscDisplayOrderAsc();
 
         var midCtas = allCtas.stream()
-            .filter(cta -> "mid".equals(cta.getPosition()))
-            .toList();
+                .filter(cta -> "mid".equals(cta.getPosition()))
+                .toList();
 
         var finalCtas = allCtas.stream()
-            .filter(cta -> "final".equals(cta.getPosition()))
-            .toList();
+                .filter(cta -> "final".equals(cta.getPosition()))
+                .toList();
 
         return ctaMapper.toCtasSectionDTO(midCtas, finalCtas);
+    }
+
+    /**
+     * Construye la información de configuración del sitio
+     */
+    private HomePageDTO.SiteSettingsDTO buildSiteSettings() {
+        var siteSettings = siteSettingsRepository.findFirstByOrderByUpdatedAtDesc();
+
+        if (siteSettings.isEmpty()) {
+            log.warn("No se encontró configuración de sitio");
+            return null;
+        }
+
+        var settings = siteSettings.get();
+
+        return new HomePageDTO.SiteSettingsDTO(
+                settings.getCompanyName(),
+                settings.getLogoUrl(),
+                settings.getLogoAlt(),
+                settings.getPhoneMain(),
+                settings.getPhoneSecondary(),
+                settings.getWhatsappNumber(),
+                settings.getWhatsappUrl(),
+                settings.getEmailMain(),
+                settings.getEmailSupport(),
+                settings.getAddressLine1(),
+                settings.getAddressLine2(),
+                settings.getCity(),
+                settings.getState(),
+                settings.getCountry(),
+                settings.getGoogleMapsUrl(),
+                settings.getFacebookUrl(),
+                settings.getInstagramUrl(),
+                settings.getLinkedinUrl(),
+                settings.getTwitterUrl(),
+                settings.getTiktokUrl()
+        );
     }
 }
