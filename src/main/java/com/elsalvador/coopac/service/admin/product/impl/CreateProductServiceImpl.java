@@ -187,11 +187,7 @@ public class CreateProductServiceImpl implements CreateProductService {
         ProductFinancialInfo financialInfo = ProductFinancialInfo.builder()
                 .product(product)
                 .interestRateText(financialDTO.interestRateText())
-                .interestRateValue(financialDTO.interestRateValue())
                 .termText(financialDTO.termText())
-                .termMonths(financialDTO.termMonths())
-                .minAmountText(financialDTO.minAmountText())
-                .minAmount(financialDTO.minAmount())
                 .currency(financialDTO.currency())
                 .notes(financialDTO.notes())
                 .build();
@@ -280,11 +276,7 @@ public class CreateProductServiceImpl implements CreateProductService {
         if (financialInfo == null) return null;
         return new ProductsAdminDTO.ProductFinancialInfoDTO(
                 financialInfo.getInterestRateText(),
-                financialInfo.getInterestRateValue(),
                 financialInfo.getTermText(),
-                financialInfo.getTermMonths(),
-                financialInfo.getMinAmountText(),
-                financialInfo.getMinAmount(),
                 financialInfo.getCurrency(),
                 financialInfo.getNotes()
         );

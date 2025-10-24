@@ -42,11 +42,7 @@ public class ProductDetailView {
     // Proyección para información financiera completa
     public interface ProductFinancialInfoView {
         String getInterestRateText();
-        Double getInterestRateValue();
         String getTermText();
-        Integer getTermMonths();
-        String getMinAmountText();
-        Double getMinAmount();
         String getCurrency();
         String getNotes();
     }

@@ -89,11 +89,7 @@ public class ProductDetailMapper {
 
         var rawData = new ProductDetailDTO.RawFinancialDataDTO(
                 financial.getInterestRateText(),
-                financial.getInterestRateValue(),
                 financial.getTermText(),
-                financial.getTermMonths(),
-                financial.getMinAmountText(),
-                financial.getMinAmount(),
                 financial.getCurrency(),
                 financial.getNotes()
         );

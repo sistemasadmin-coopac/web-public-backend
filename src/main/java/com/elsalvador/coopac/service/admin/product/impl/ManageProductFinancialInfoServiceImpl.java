@@ -42,11 +42,7 @@ public class ManageProductFinancialInfoServiceImpl implements ManageProductFinan
         ProductFinancialInfo financialInfo = ProductFinancialInfo.builder()
                 .product(product)
                 .interestRateText(createDTO.interestRateText())
-                .interestRateValue(createDTO.interestRateValue())
                 .termText(createDTO.termText())
-                .termMonths(createDTO.termMonths())
-                .minAmountText(createDTO.minAmountText())
-                .minAmount(createDTO.minAmount())
                 .currency(createDTO.currency())
                 .notes(createDTO.notes())
                 .build();
@@ -67,20 +63,8 @@ public class ManageProductFinancialInfoServiceImpl implements ManageProductFinan
         if (updateDTO.interestRateText() != null) {
             financialInfo.setInterestRateText(updateDTO.interestRateText());
         }
-        if (updateDTO.interestRateValue() != null) {
-            financialInfo.setInterestRateValue(updateDTO.interestRateValue());
-        }
         if (updateDTO.termText() != null) {
             financialInfo.setTermText(updateDTO.termText());
-        }
-        if (updateDTO.termMonths() != null) {
-            financialInfo.setTermMonths(updateDTO.termMonths());
-        }
-        if (updateDTO.minAmountText() != null) {
-            financialInfo.setMinAmountText(updateDTO.minAmountText());
-        }
-        if (updateDTO.minAmount() != null) {
-            financialInfo.setMinAmount(updateDTO.minAmount());
         }
         if (updateDTO.currency() != null) {
             financialInfo.setCurrency(updateDTO.currency());
@@ -112,11 +96,7 @@ public class ManageProductFinancialInfoServiceImpl implements ManageProductFinan
     private ProductsAdminDTO.ProductFinancialInfoDTO mapToDTO(ProductFinancialInfo financialInfo) {
         return new ProductsAdminDTO.ProductFinancialInfoDTO(
                 financialInfo.getInterestRateText(),
-                financialInfo.getInterestRateValue(),
                 financialInfo.getTermText(),
-                financialInfo.getTermMonths(),
-                financialInfo.getMinAmountText(),
-                financialInfo.getMinAmount(),
                 financialInfo.getCurrency(),
                 financialInfo.getNotes()
         );

@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
@@ -26,23 +25,12 @@ public class ProductFinancialInfo {
     @MapsId
     private Products product;
 
-    @Column(name = "interest_rate_text", length = 50)
+    @Column(name = "interest_rate_text", length = 100)
     private String interestRateText;
 
-    @Column(name = "interest_rate_value", precision = 6, scale = 3)
-    private BigDecimal interestRateValue;
-
-    @Column(name = "term_text", length = 50)
+    @Column(name = "term_text", length = 100)
     private String termText;
 
-    @Column(name = "term_months")
-    private Integer termMonths;
-
-    @Column(name = "min_amount_text", length = 50)
-    private String minAmountText;
-
-    @Column(name = "min_amount", precision = 18, scale = 2)
-    private BigDecimal minAmount;
 
     @Column(name = "currency", length = 10)
     private String currency;
