@@ -44,4 +44,11 @@ public interface ManageProductCategoriesService {
      * @param categoryId ID de la categoría
      */
     void deleteCategory(UUID categoryId);
+
+    /**
+     * Alterna el estado activo/inactivo de una categoría
+     * @param categoryId ID de la categoría
+     * @return categoría con estado actualizado
+     */
+    ProductCategoriesAdminDTO.ProductCategoryResponseDTO toggleActive(UUID categoryId);
 }

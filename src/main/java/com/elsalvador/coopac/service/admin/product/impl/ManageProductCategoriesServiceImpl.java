@@ -134,6 +134,22 @@ public class ManageProductCategoriesServiceImpl implements ManageProductCategori
         log.info("Categoría eliminada exitosamente con ID: {}", categoryId);
     }
 
+    @Override
+    @CacheEvict(value = {CacheConfig.PRODUCT_PAGE_CACHE, CacheConfig.HOME_PAGE_CACHE}, allEntries = true)
+    public ProductCategoriesAdminDTO.ProductCategoryResponseDTO toggleActive(UUID categoryId) {
+        log.debug("Alternando estado activo/inactivo de categoría con ID: {}", categoryId);
+
+        ProductCategories category = findCategoryById(categoryId);
+
+        // Alternar el estado
+        category.setIsActive(!category.getIsActive());
+
+        ProductCategories savedCategory = productCategoriesRepository.save(category);
+        log.info("Estado de categoría alternado a: {} para ID: {}", savedCategory.getIsActive(), categoryId);
+
+        return mapToResponseDTO(savedCategory);
+    }
+
     /**
      * Busca una categoría por ID, lanza excepción si no existe
      */

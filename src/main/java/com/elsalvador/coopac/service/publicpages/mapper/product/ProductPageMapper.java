@@ -92,12 +92,9 @@ public class ProductPageMapper
     private ProductPageDTO.FinanceBriefDTO mapFinancialBrief(ProductDetailView.ProductFinancialInfoView financial) {
         return new ProductPageDTO.FinanceBriefDTO(
                 financial.getInterestRateText(),
-                financial.getInterestRateValue(),
                 financial.getTermText(),
-                financial.getTermMonths(),
-                financial.getMinAmountText(),
-                financial.getMinAmount() != null ? financial.getMinAmount().intValue() : null,
-                financial.getCurrency()
+                financial.getCurrency(),
+                financial.getNotes()
         );
     }
 

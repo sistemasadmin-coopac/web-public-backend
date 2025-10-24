@@ -45,11 +45,7 @@ public record ProductDetailDTO(
 
     public record RawFinancialDataDTO(
         String interestRateText,
-        Double interestRateValue,
         String termText,
-        Integer termMonths,
-        String minAmountText,
-        Double minAmount,
         String currency,
         String notes
     ) {}

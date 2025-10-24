@@ -1,6 +1,5 @@
 package com.elsalvador.coopac.dto.admin;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -165,33 +164,21 @@ public class ProductsAdminDTO {
     // DTOs para información financiera
     public record ProductFinancialInfoDTO(
             String interestRateText,
-            BigDecimal interestRateValue,
             String termText,
-            Integer termMonths,
-            String minAmountText,
-            BigDecimal minAmount,
             String currency,
             String notes
     ) {}
 
     public record CreateProductFinancialInfoDTO(
             String interestRateText,
-            BigDecimal interestRateValue,
             String termText,
-            Integer termMonths,
-            String minAmountText,
-            BigDecimal minAmount,
             String currency,
             String notes
     ) {}
 
     public record UpdateProductFinancialInfoDTO(
             String interestRateText,
-            BigDecimal interestRateValue,
             String termText,
-            Integer termMonths,
-            String minAmountText,
-            BigDecimal minAmount,
             String currency,
             String notes
     ) {}

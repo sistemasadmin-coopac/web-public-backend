@@ -282,11 +282,7 @@ public class GetProductsAdminServiceImpl implements GetProductsAdminService {
 
         return new ProductsAdminDTO.ProductFinancialInfoDTO(
                 financialInfo.getInterestRateText(),
-                financialInfo.getInterestRateValue(),
                 financialInfo.getTermText(),
-                financialInfo.getTermMonths(),
-                financialInfo.getMinAmountText(),
-                financialInfo.getMinAmount(),
                 financialInfo.getCurrency(),
                 financialInfo.getNotes()
         );

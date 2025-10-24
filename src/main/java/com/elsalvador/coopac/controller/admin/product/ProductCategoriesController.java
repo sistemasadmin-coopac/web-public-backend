@@ -106,4 +106,15 @@ public class ProductCategoriesController {
         manageProductCategoriesService.deleteCategory(categoryId);
         return ResponseEntity.noContent().build();
     }
+
+    /**
+     * Alterna el estado activo/inactivo de una categoría
+     */
+    @PatchMapping("/{categoryId}/toggle-active")
+    public ResponseEntity<ProductCategoriesAdminDTO.ProductCategoryResponseDTO> toggleActive(
+            @PathVariable UUID categoryId) {
+        ProductCategoriesAdminDTO.ProductCategoryResponseDTO category =
+                manageProductCategoriesService.toggleActive(categoryId);
+        return ResponseEntity.ok(category);
+    }
 }

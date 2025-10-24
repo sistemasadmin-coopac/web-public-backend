@@ -66,12 +66,9 @@ public record ProductPageDTO(
 
     public record FinanceBriefDTO(
         String interestRateText,
-        Double interestRateValue,
         String termText,
-        Integer termMonths,
-        String minAmountText,
-        Integer minAmount,
-        String currency
+        String currency,
+        String notes
     ) {}
 
     public record PaginationDTO(
