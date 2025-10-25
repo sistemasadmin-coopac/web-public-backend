@@ -9,8 +9,11 @@ import com.elsalvador.coopac.repository.product.ProductsRepository;
 import com.elsalvador.coopac.service.admin.product.ManageProductStepsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.elsalvador.coopac.config.CacheConfig.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -28,6 +31,7 @@ public class ManageProductStepsServiceImpl implements ManageProductStepsService 
     private final ProductsRepository productsRepository;
 
     @Override
+    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE}, allEntries = true)
     public ProductsAdminDTO.ProductStepDTO addStep(UUID productId, ProductsAdminDTO.CreateProductStepDTO createDTO) {
         log.info("Añadiendo paso al producto: {}", productId);
 
@@ -59,6 +63,7 @@ public class ManageProductStepsServiceImpl implements ManageProductStepsService 
     }
 
     @Override
+    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE}, allEntries = true)
     public ProductsAdminDTO.ProductStepDTO updateStep(UUID stepId, ProductsAdminDTO.UpdateProductStepDTO updateDTO) {
         log.info("Actualizando paso con ID: {}", stepId);
 
@@ -86,6 +91,7 @@ public class ManageProductStepsServiceImpl implements ManageProductStepsService 
     }
 
     @Override
+    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE}, allEntries = true)
     public void deleteStep(UUID stepId) {
         log.info("Eliminando paso con ID: {}", stepId);
 
@@ -104,6 +110,7 @@ public class ManageProductStepsServiceImpl implements ManageProductStepsService 
     }
 
     @Override
+    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE}, allEntries = true)
     public ProductsAdminDTO.ProductStepDTO toggleStepStatus(UUID stepId, Boolean isActive) {
         log.info("Cambiando estado del paso {} a: {}", stepId, isActive);
 

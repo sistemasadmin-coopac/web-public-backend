@@ -9,8 +9,11 @@ import com.elsalvador.coopac.repository.product.ProductsRepository;
 import com.elsalvador.coopac.service.admin.product.ManageProductFeaturesService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.elsalvador.coopac.config.CacheConfig.*;
 
 import java.util.UUID;
 
@@ -27,6 +30,7 @@ public class ManageProductFeaturesServiceImpl implements ManageProductFeaturesSe
     private final ProductsRepository productsRepository;
 
     @Override
+    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE}, allEntries = true)
     public ProductsAdminDTO.ProductFeatureDTO addFeature(UUID productId, ProductsAdminDTO.CreateProductFeatureDTO createDTO) {
         log.info("Añadiendo característica al producto: {}", productId);
 
@@ -46,6 +50,7 @@ public class ManageProductFeaturesServiceImpl implements ManageProductFeaturesSe
     }
 
     @Override
+    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE}, allEntries = true)
     public ProductsAdminDTO.ProductFeatureDTO updateFeature(UUID featureId, ProductsAdminDTO.UpdateProductFeatureDTO updateDTO) {
         log.info("Actualizando característica con ID: {}", featureId);
 
@@ -66,6 +71,7 @@ public class ManageProductFeaturesServiceImpl implements ManageProductFeaturesSe
     }
 
     @Override
+    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE}, allEntries = true)
     public void deleteFeature(UUID featureId) {
         log.info("Eliminando característica con ID: {}", featureId);
 
