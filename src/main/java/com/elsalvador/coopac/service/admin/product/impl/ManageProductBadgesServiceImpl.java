@@ -29,7 +29,7 @@ public class ManageProductBadgesServiceImpl implements ManageProductBadgesServic
     private final ProductsRepository productsRepository;
 
     @Override
-    @CacheEvict(value = {CacheConfig.PRODUCT_PAGE_CACHE, CacheConfig.PRODUCT_DETAIL_CACHE, CacheConfig.HOME_PAGE_CACHE}, allEntries = true)
+    @CacheEvict(value = {CacheConfig.PRODUCT_PAGE_CACHE, CacheConfig.PRODUCT_DETAIL_CACHE, CacheConfig.HOME_PAGE_CACHE, CacheConfig.JOIN_PAGE_CACHE}, allEntries = true)
     public ProductsAdminDTO.ProductBadgeDTO addBadge(UUID productId, ProductsAdminDTO.CreateProductBadgeDTO createDTO) {
         log.info("Añadiendo badge al producto: {}", productId);
 
@@ -49,7 +49,7 @@ public class ManageProductBadgesServiceImpl implements ManageProductBadgesServic
     }
 
     @Override
-    @CacheEvict(value = {CacheConfig.PRODUCT_PAGE_CACHE, CacheConfig.PRODUCT_DETAIL_CACHE, CacheConfig.HOME_PAGE_CACHE}, allEntries = true)
+    @CacheEvict(value = {CacheConfig.PRODUCT_PAGE_CACHE, CacheConfig.PRODUCT_DETAIL_CACHE, CacheConfig.HOME_PAGE_CACHE, CacheConfig.JOIN_PAGE_CACHE}, allEntries = true)
     public ProductsAdminDTO.ProductBadgeDTO updateBadge(UUID badgeId, ProductsAdminDTO.UpdateProductBadgeDTO updateDTO) {
         log.info("Actualizando badge con ID: {}", badgeId);
 
@@ -70,7 +70,7 @@ public class ManageProductBadgesServiceImpl implements ManageProductBadgesServic
     }
 
     @Override
-    @CacheEvict(value = {CacheConfig.PRODUCT_PAGE_CACHE, CacheConfig.PRODUCT_DETAIL_CACHE, CacheConfig.HOME_PAGE_CACHE}, allEntries = true)
+    @CacheEvict(value = {CacheConfig.PRODUCT_PAGE_CACHE, CacheConfig.PRODUCT_DETAIL_CACHE, CacheConfig.HOME_PAGE_CACHE, CacheConfig.JOIN_PAGE_CACHE}, allEntries = true)
     public void deleteBadge(UUID badgeId) {
         log.info("Eliminando badge con ID: {}", badgeId);
 

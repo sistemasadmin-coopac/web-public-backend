@@ -22,7 +22,7 @@ public class UpdatePageHeaderCardsServiceImpl implements UpdatePageHeaderCardsSe
     private final PageHeaderCardsAdminMapper pageHeaderCardsAdminMapper;
 
     @Override
-    @CacheEvict(value = {HOME_PAGE_CACHE, ABOUT_PAGE_CACHE, CONTACT_PAGE_CACHE, FINANCIAL_PAGE_CACHE, PRODUCT_PAGE_CACHE}, allEntries = true)
+    @CacheEvict(value = {HOME_PAGE_CACHE, ABOUT_PAGE_CACHE, CONTACT_PAGE_CACHE, FINANCIAL_PAGE_CACHE, PRODUCT_PAGE_CACHE, JOIN_PAGE_CACHE}, allEntries = true)
     public PageHeaderCardsAdminDTO updatePageHeaderCards(PageHeaderCardsAdminDTO pageHeaderCardDTO) {
         log.info("Actualizando PageHeaderCard con ID: {}", pageHeaderCardDTO.id());
 

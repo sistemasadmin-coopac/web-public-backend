@@ -110,6 +110,7 @@ public class SecurityConfig {
                                 "/api/footer/**",
                                 "/api/contact/**",
                                 "/api/about/**",
+                                "/api/join/page",
                                 "/actuator/health",
                                 "/login/**",
                                 "/oauth2/**",

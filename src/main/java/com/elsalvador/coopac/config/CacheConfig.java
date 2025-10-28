@@ -22,6 +22,7 @@ public class CacheConfig {
 
     public static final String HOME_PAGE_CACHE = "homePageCache";
     public static final String ABOUT_PAGE_CACHE = "aboutPageCache";
+    public static final String JOIN_PAGE_CACHE = "joinPageCache";
     public static final String CONTACT_PAGE_CACHE = "contactPageCache";
     public static final String FINANCIAL_PAGE_CACHE = "financialPageCache";
     public static final String FOOTER_PAGE_CACHE = "footerPageCache";
@@ -35,6 +36,7 @@ public class CacheConfig {
         cacheManager.setCaches(Arrays.asList(
                 new ConcurrentMapCache(HOME_PAGE_CACHE),
                 new ConcurrentMapCache(ABOUT_PAGE_CACHE),
+                new ConcurrentMapCache(JOIN_PAGE_CACHE),
                 new ConcurrentMapCache(CONTACT_PAGE_CACHE),
                 new ConcurrentMapCache(FINANCIAL_PAGE_CACHE),
                 new ConcurrentMapCache(FOOTER_PAGE_CACHE),

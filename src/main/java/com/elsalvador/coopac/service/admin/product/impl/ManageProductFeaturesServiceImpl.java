@@ -30,7 +30,7 @@ public class ManageProductFeaturesServiceImpl implements ManageProductFeaturesSe
     private final ProductsRepository productsRepository;
 
     @Override
-    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE}, allEntries = true)
+    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE, JOIN_PAGE_CACHE}, allEntries = true)
     public ProductsAdminDTO.ProductFeatureDTO addFeature(UUID productId, ProductsAdminDTO.CreateProductFeatureDTO createDTO) {
         log.info("Añadiendo característica al producto: {}", productId);
 
@@ -50,7 +50,7 @@ public class ManageProductFeaturesServiceImpl implements ManageProductFeaturesSe
     }
 
     @Override
-    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE}, allEntries = true)
+    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE, JOIN_PAGE_CACHE}, allEntries = true)
     public ProductsAdminDTO.ProductFeatureDTO updateFeature(UUID featureId, ProductsAdminDTO.UpdateProductFeatureDTO updateDTO) {
         log.info("Actualizando característica con ID: {}", featureId);
 
@@ -71,7 +71,7 @@ public class ManageProductFeaturesServiceImpl implements ManageProductFeaturesSe
     }
 
     @Override
-    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE}, allEntries = true)
+    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE, JOIN_PAGE_CACHE}, allEntries = true)
     public void deleteFeature(UUID featureId) {
         log.info("Eliminando característica con ID: {}", featureId);
 

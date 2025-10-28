@@ -31,7 +31,7 @@ public class ManageProductFinancialInfoServiceImpl implements ManageProductFinan
     private final ProductsRepository productsRepository;
 
     @Override
-    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE}, allEntries = true)
+    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE, JOIN_PAGE_CACHE}, allEntries = true)
     public ProductsAdminDTO.ProductFinancialInfoDTO createFinancialInfo(UUID productId, ProductsAdminDTO.CreateProductFinancialInfoDTO createDTO) {
         log.info("Creando información financiera para producto: {}", productId);
 
@@ -58,7 +58,7 @@ public class ManageProductFinancialInfoServiceImpl implements ManageProductFinan
     }
 
     @Override
-    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE}, allEntries = true)
+    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE, JOIN_PAGE_CACHE}, allEntries = true)
     public ProductsAdminDTO.ProductFinancialInfoDTO updateFinancialInfo(UUID productId, ProductsAdminDTO.UpdateProductFinancialInfoDTO updateDTO) {
         log.info("Actualizando información financiera del producto: {}", productId);
 
@@ -85,7 +85,7 @@ public class ManageProductFinancialInfoServiceImpl implements ManageProductFinan
     }
 
     @Override
-    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE}, allEntries = true)
+    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE, JOIN_PAGE_CACHE}, allEntries = true)
     public void deleteFinancialInfo(UUID productId) {
         log.info("Eliminando información financiera del producto: {}", productId);
 

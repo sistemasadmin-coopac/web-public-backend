@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -30,6 +31,19 @@ public class ProductStepsController {
         ProductsAdminDTO.ProductStepDTO step =
                 manageProductStepsService.addStep(productId, createDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(step);
+    }
+
+    /**
+     * Añade múltiples pasos a un producto en una sola operación (batch)
+     * Esto asegura que los pasos tengan la numeración correcta: Paso 1, Paso 2, Paso 3, etc.
+     */
+    @PostMapping("/{productId}/steps/batch")
+    public ResponseEntity<List<ProductsAdminDTO.ProductStepDTO>> addMultipleSteps(
+            @PathVariable UUID productId,
+            @Valid @RequestBody List<ProductsAdminDTO.CreateProductStepDTO> stepsDTO) {
+        List<ProductsAdminDTO.ProductStepDTO> steps =
+                manageProductStepsService.addMultipleSteps(productId, stepsDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(steps);
     }
 
     /**

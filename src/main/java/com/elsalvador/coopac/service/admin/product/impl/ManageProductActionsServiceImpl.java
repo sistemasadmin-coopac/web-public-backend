@@ -29,7 +29,7 @@ public class ManageProductActionsServiceImpl implements ManageProductActionsServ
     private final ProductsRepository productsRepository;
 
     @Override
-    @CacheEvict(value = {CacheConfig.PRODUCT_PAGE_CACHE, CacheConfig.PRODUCT_DETAIL_CACHE, CacheConfig.HOME_PAGE_CACHE}, allEntries = true)
+    @CacheEvict(value = {CacheConfig.PRODUCT_PAGE_CACHE, CacheConfig.PRODUCT_DETAIL_CACHE, CacheConfig.HOME_PAGE_CACHE, CacheConfig.JOIN_PAGE_CACHE}, allEntries = true)
     public ProductsAdminDTO.ProductActionDTO addAction(UUID productId, ProductsAdminDTO.CreateProductActionDTO createDTO) {
         log.info("Añadiendo acción al producto: {}", productId);
 
@@ -52,7 +52,7 @@ public class ManageProductActionsServiceImpl implements ManageProductActionsServ
     }
 
     @Override
-    @CacheEvict(value = {CacheConfig.PRODUCT_PAGE_CACHE, CacheConfig.PRODUCT_DETAIL_CACHE, CacheConfig.HOME_PAGE_CACHE}, allEntries = true)
+    @CacheEvict(value = {CacheConfig.PRODUCT_PAGE_CACHE, CacheConfig.PRODUCT_DETAIL_CACHE, CacheConfig.HOME_PAGE_CACHE, CacheConfig.JOIN_PAGE_CACHE}, allEntries = true)
     public ProductsAdminDTO.ProductActionDTO updateAction(UUID actionId, ProductsAdminDTO.UpdateProductActionDTO updateDTO) {
         log.info("Actualizando acción con ID: {}", actionId);
 
@@ -82,7 +82,7 @@ public class ManageProductActionsServiceImpl implements ManageProductActionsServ
     }
 
     @Override
-    @CacheEvict(value = {CacheConfig.PRODUCT_PAGE_CACHE, CacheConfig.PRODUCT_DETAIL_CACHE, CacheConfig.HOME_PAGE_CACHE}, allEntries = true)
+    @CacheEvict(value = {CacheConfig.PRODUCT_PAGE_CACHE, CacheConfig.PRODUCT_DETAIL_CACHE, CacheConfig.HOME_PAGE_CACHE, CacheConfig.JOIN_PAGE_CACHE}, allEntries = true)
     public void deleteAction(UUID actionId) {
         log.info("Eliminando acción con ID: {}", actionId);
 
