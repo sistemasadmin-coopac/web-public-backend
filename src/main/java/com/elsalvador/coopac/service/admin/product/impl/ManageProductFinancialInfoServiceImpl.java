@@ -10,8 +10,11 @@ import com.elsalvador.coopac.repository.product.ProductsRepository;
 import com.elsalvador.coopac.service.admin.product.ManageProductFinancialInfoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.elsalvador.coopac.config.CacheConfig.*;
 
 import java.util.UUID;
 
@@ -28,6 +31,7 @@ public class ManageProductFinancialInfoServiceImpl implements ManageProductFinan
     private final ProductsRepository productsRepository;
 
     @Override
+    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE, JOIN_PAGE_CACHE}, allEntries = true)
     public ProductsAdminDTO.ProductFinancialInfoDTO createFinancialInfo(UUID productId, ProductsAdminDTO.CreateProductFinancialInfoDTO createDTO) {
         log.info("Creando información financiera para producto: {}", productId);
 
@@ -54,6 +58,7 @@ public class ManageProductFinancialInfoServiceImpl implements ManageProductFinan
     }
 
     @Override
+    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE, JOIN_PAGE_CACHE}, allEntries = true)
     public ProductsAdminDTO.ProductFinancialInfoDTO updateFinancialInfo(UUID productId, ProductsAdminDTO.UpdateProductFinancialInfoDTO updateDTO) {
         log.info("Actualizando información financiera del producto: {}", productId);
 
@@ -80,6 +85,7 @@ public class ManageProductFinancialInfoServiceImpl implements ManageProductFinan
     }
 
     @Override
+    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE, JOIN_PAGE_CACHE}, allEntries = true)
     public void deleteFinancialInfo(UUID productId) {
         log.info("Eliminando información financiera del producto: {}", productId);
 

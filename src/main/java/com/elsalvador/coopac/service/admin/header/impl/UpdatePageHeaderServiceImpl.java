@@ -25,7 +25,7 @@ public class UpdatePageHeaderServiceImpl implements UpdatePageHeaderService {
     private final PageHeaderAdminMapper pageHeaderAdminMapper;
 
     @Override
-    @CacheEvict(value = {HOME_PAGE_CACHE, ABOUT_PAGE_CACHE, CONTACT_PAGE_CACHE, FINANCIAL_PAGE_CACHE, PRODUCT_PAGE_CACHE}, allEntries = true)
+    @CacheEvict(value = {HOME_PAGE_CACHE, ABOUT_PAGE_CACHE, CONTACT_PAGE_CACHE, FINANCIAL_PAGE_CACHE, PRODUCT_PAGE_CACHE, JOIN_PAGE_CACHE}, allEntries = true)
     public PageHeaderAdminDTO updatePageHeader(PageHeaderAdminDTO pageHeaderDTO) {
         log.info("Actualizando PageHeader con ID: {}", pageHeaderDTO.id());
         Optional<PageHeaders> pageHeaderDb = pageHeadersRepository.findById(pageHeaderDTO.id());

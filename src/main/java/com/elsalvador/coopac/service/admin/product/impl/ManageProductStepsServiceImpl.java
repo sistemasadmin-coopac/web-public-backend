@@ -9,8 +9,11 @@ import com.elsalvador.coopac.repository.product.ProductsRepository;
 import com.elsalvador.coopac.service.admin.product.ManageProductStepsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.elsalvador.coopac.config.CacheConfig.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -28,6 +31,8 @@ public class ManageProductStepsServiceImpl implements ManageProductStepsService 
     private final ProductsRepository productsRepository;
 
     @Override
+
+    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE, JOIN_PAGE_CACHE}, allEntries = true)
     public ProductsAdminDTO.ProductStepDTO addStep(UUID productId, ProductsAdminDTO.CreateProductStepDTO createDTO) {
         log.info("Añadiendo paso al producto: {}", productId);
 
@@ -59,6 +64,45 @@ public class ManageProductStepsServiceImpl implements ManageProductStepsService 
     }
 
     @Override
+    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE, JOIN_PAGE_CACHE}, allEntries = true)
+    public List<ProductsAdminDTO.ProductStepDTO> addMultipleSteps(UUID productId, List<ProductsAdminDTO.CreateProductStepDTO> stepsDTO) {
+        log.info("Añadiendo {} pasos al producto: {}", stepsDTO.size(), productId);
+
+        Products product = productsRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con ID: " + productId));
+
+        // Obtener el siguiente número de orden inicial
+        Integer startOrder = stepsRepository.findMaxDisplayOrderByProductId(productId) + 1;
+
+        List<ProductSteps> createdSteps = new java.util.ArrayList<>();
+        int order = startOrder;
+
+        for (ProductsAdminDTO.CreateProductStepDTO dto : stepsDTO) {
+            // Generar título automáticamente: "Paso 1", "Paso 2", etc.
+            String autoTitle = "Paso " + order;
+
+            ProductSteps step = ProductSteps.builder()
+                    .product(product)
+                    .title(autoTitle)
+                    .description(dto.description())
+                    .icon(dto.icon())
+                    .estimatedTime(dto.estimatedTime())
+                    .displayOrder(order)
+                    .isActive(true)
+                    .build();
+
+            ProductSteps savedStep = stepsRepository.save(step);
+            createdSteps.add(savedStep);
+            log.info("Paso creado en batch: ID={}, título='{}', orden={}", savedStep.getId(), savedStep.getTitle(), order);
+            order++;
+        }
+
+        log.info("Batch completado: {} pasos creados para producto {}", createdSteps.size(), productId);
+        return createdSteps.stream().map(this::mapToDTO).collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
+    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE, JOIN_PAGE_CACHE}, allEntries = true)
     public ProductsAdminDTO.ProductStepDTO updateStep(UUID stepId, ProductsAdminDTO.UpdateProductStepDTO updateDTO) {
         log.info("Actualizando paso con ID: {}", stepId);
 
@@ -86,6 +130,7 @@ public class ManageProductStepsServiceImpl implements ManageProductStepsService 
     }
 
     @Override
+    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE, JOIN_PAGE_CACHE}, allEntries = true)
     public void deleteStep(UUID stepId) {
         log.info("Eliminando paso con ID: {}", stepId);
 
@@ -104,6 +149,7 @@ public class ManageProductStepsServiceImpl implements ManageProductStepsService 
     }
 
     @Override
+    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE, JOIN_PAGE_CACHE}, allEntries = true)
     public ProductsAdminDTO.ProductStepDTO toggleStepStatus(UUID stepId, Boolean isActive) {
         log.info("Cambiando estado del paso {} a: {}", stepId, isActive);
 
@@ -122,7 +168,8 @@ public class ManageProductStepsServiceImpl implements ManageProductStepsService 
      * Reorganiza los pasos de un producto para mantener la secuencia sin huecos
      * y actualiza los títulos para que sean "Paso 1", "Paso 2", etc.
      */
-    private void reorganizeSteps(UUID productId) {
+    @CacheEvict(value = {PRODUCT_PAGE_CACHE, PRODUCT_DETAIL_CACHE, HOME_PAGE_CACHE, JOIN_PAGE_CACHE}, allEntries = true)
+    public void reorganizeSteps(UUID productId) {
         log.info("Reorganizando pasos del producto: {}", productId);
 
         // Obtener todos los pasos ordenados
