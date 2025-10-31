@@ -30,5 +30,9 @@ public class JoinRequirementGroup {
     private List<String> items;
 
     private Integer sectionOrder;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "join_section_id")
+    private JoinSection joinSection;
 }
 
