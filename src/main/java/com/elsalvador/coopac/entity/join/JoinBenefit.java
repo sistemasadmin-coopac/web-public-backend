@@ -26,7 +26,10 @@ public class JoinBenefit {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-
     private Integer sectionOrder;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "join_section_id")
+    private JoinSection joinSection;
 }
 

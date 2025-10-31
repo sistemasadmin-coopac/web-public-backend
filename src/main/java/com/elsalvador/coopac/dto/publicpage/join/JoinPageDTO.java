@@ -8,6 +8,7 @@ public record JoinPageDTO(
     List<SpecialBenefitDTO> specialBenefits,
     CostToJoinSectionDTO costToJoin,
     RequirementsToJoinSectionDTO requirementsToJoin,
+    ScheduleSectionDTO schedule,
     VisitUsSectionDTO visitUs
 ) {
 
@@ -61,6 +62,20 @@ public record JoinPageDTO(
         public record RequirementGroupDTO(
             String groupLabel,
             List<String> items
+        ) {}
+    }
+
+    public record ScheduleSectionDTO(
+        String title,
+        List<ScheduleItemDTO> items,
+        String note
+    ) {
+        public record ScheduleItemDTO(
+            String label,
+            String open,
+            String close,
+            Boolean isClosed,
+            Integer order
         ) {}
     }
 

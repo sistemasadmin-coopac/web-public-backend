@@ -1,8 +1,10 @@
 package com.elsalvador.coopac.service.publicpages.impl;
 
 import com.elsalvador.coopac.dto.publicpage.join.JoinPageDTO;
+import com.elsalvador.coopac.entity.contact.ContactScheduleEntries;
 import com.elsalvador.coopac.entity.join.*;
 import com.elsalvador.coopac.exception.EntityNotFoundException;
+import com.elsalvador.coopac.repository.contact.ContactScheduleEntriesRepository;
 import com.elsalvador.coopac.repository.join.JoinSectionRepository;
 import com.elsalvador.coopac.service.publicpages.GetDataJoinPageService;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +12,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -22,6 +28,7 @@ import java.util.stream.Collectors;
 public class GetDataJoinPageServiceImpl implements GetDataJoinPageService {
 
     private final JoinSectionRepository joinSectionRepository;
+    private final ContactScheduleEntriesRepository contactScheduleEntriesRepository;
 
     @Override
     public JoinPageDTO getJoinPageData() {
@@ -37,7 +44,6 @@ public class GetDataJoinPageServiceImpl implements GetDataJoinPageService {
     }
 
     private JoinPageDTO mapToPageDTO(JoinSection joinSection) {
-        // Header
         JoinPageDTO.HeaderDTO header = null;
         if (joinSection.getPageHeader() != null) {
             header = new JoinPageDTO.HeaderDTO(
@@ -48,23 +54,14 @@ public class GetDataJoinPageServiceImpl implements GetDataJoinPageService {
             );
         }
 
-        // Why Join Section
         JoinPageDTO.WhyJoinSectionDTO whyJoin = mapWhyJoinSection(joinSection.getBenefits());
-
-        // Special Benefits Section
         List<JoinPageDTO.SpecialBenefitDTO> specialBenefits = mapSpecialBenefits(joinSection.getSpecialBenefits());
-
-        // Cost Section
         JoinPageDTO.CostToJoinSectionDTO costToJoin = mapCostSection(joinSection.getCosts());
-
-        // Requirements Section
-        JoinPageDTO.RequirementsToJoinSectionDTO requirementsToJoin =
-            mapRequirementsSection(joinSection.getRequirementGroups());
-
-        // Visit Us Section
+        JoinPageDTO.RequirementsToJoinSectionDTO requirementsToJoin = mapRequirementsSection(joinSection.getRequirementGroups());
+        JoinPageDTO.ScheduleSectionDTO schedule = mapScheduleSection();
         JoinPageDTO.VisitUsSectionDTO visitUs = mapVisitUsSection();
 
-        return new JoinPageDTO(header, whyJoin, specialBenefits, costToJoin, requirementsToJoin, visitUs);
+        return new JoinPageDTO(header, whyJoin, specialBenefits, costToJoin, requirementsToJoin, schedule, visitUs);
     }
 
     private JoinPageDTO.WhyJoinSectionDTO mapWhyJoinSection(List<JoinBenefit> benefits) {
@@ -145,8 +142,7 @@ public class GetDataJoinPageServiceImpl implements GetDataJoinPageService {
         );
     }
 
-    private JoinPageDTO.RequirementsToJoinSectionDTO mapRequirementsSection(
-            List<JoinRequirementGroup> groups) {
+    private JoinPageDTO.RequirementsToJoinSectionDTO mapRequirementsSection(List<JoinRequirementGroup> groups) {
         List<JoinPageDTO.RequirementsToJoinSectionDTO.RequirementGroupDTO> groupDTOs = new ArrayList<>();
 
         if (groups != null) {
@@ -154,7 +150,9 @@ public class GetDataJoinPageServiceImpl implements GetDataJoinPageService {
                 .sorted(Comparator.comparing(g -> g.getSectionOrder() != null ? g.getSectionOrder() : 0))
                 .map(g -> new JoinPageDTO.RequirementsToJoinSectionDTO.RequirementGroupDTO(
                     g.getGroupLabel(),
-                    g.getItems()
+                    g.getItems() != null ? g.getItems().stream()
+                        .filter(item -> item != null)
+                        .collect(Collectors.toList()) : new ArrayList<>()
                 ))
                 .collect(Collectors.toList());
         }
@@ -166,6 +164,83 @@ public class GetDataJoinPageServiceImpl implements GetDataJoinPageService {
         );
     }
 
+    private JoinPageDTO.ScheduleSectionDTO mapScheduleSection() {
+        List<ContactScheduleEntries> scheduleEntries = contactScheduleEntriesRepository.findByIsActiveTrueOrderByDisplayOrderAsc();
+
+        if (scheduleEntries.isEmpty()) {
+            return new JoinPageDTO.ScheduleSectionDTO("Horarios de Atención", new ArrayList<>(), "");
+        }
+
+        ZonedDateTime peruTime = ZonedDateTime.now(ZoneId.of("America/Lima"));
+        DayOfWeek todayDayOfWeek = peruTime.getDayOfWeek();
+        LocalTime currentTime = peruTime.toLocalTime();
+
+        ContactScheduleEntries todaySchedule = scheduleEntries.stream()
+            .filter(entry -> isDayMatchingEntry(entry, todayDayOfWeek))
+            .findFirst()
+            .orElse(null);
+
+        if (todaySchedule == null) {
+            return new JoinPageDTO.ScheduleSectionDTO("Horarios de Atención", new ArrayList<>(), "");
+        }
+
+        JoinPageDTO.ScheduleSectionDTO.ScheduleItemDTO todayItem =
+            new JoinPageDTO.ScheduleSectionDTO.ScheduleItemDTO(
+                todaySchedule.getLabel(),
+                todaySchedule.getOpenTime() != null ? todaySchedule.getOpenTime().toString() : "",
+                todaySchedule.getCloseTime() != null ? todaySchedule.getCloseTime().toString() : "",
+                todaySchedule.getIsClosed() != null && todaySchedule.getIsClosed(),
+                todaySchedule.getDisplayOrder()
+            );
+
+        String note = calculateOpenStatus(todaySchedule, todayDayOfWeek, currentTime);
+
+        return new JoinPageDTO.ScheduleSectionDTO("Horarios de Atención", List.of(todayItem), note);
+    }
+
+    private boolean isDayMatchingEntry(ContactScheduleEntries entry, DayOfWeek dayOfWeek) {
+        String dayLabel = entry.getLabel().toLowerCase();
+
+        if (dayLabel.contains("lunes") || dayLabel.contains("viernes") || dayLabel.contains("semana")) {
+            return dayOfWeek.getValue() >= 1 && dayOfWeek.getValue() <= 5;
+        }
+
+        if (dayLabel.contains("sábado") || dayLabel.contains("sabado")) {
+            return dayOfWeek == DayOfWeek.SATURDAY;
+        }
+
+        if (dayLabel.contains("domingo")) {
+            return dayOfWeek == DayOfWeek.SUNDAY;
+        }
+
+        return false;
+    }
+
+    private String calculateOpenStatus(ContactScheduleEntries entry, DayOfWeek dayOfWeek, LocalTime currentTime) {
+        if (entry.getIsClosed() != null && entry.getIsClosed()) {
+            return "Cerrado";
+        }
+
+        if (entry.getOpenTime() != null && entry.getCloseTime() != null) {
+            LocalTime openTime = entry.getOpenTime();
+            LocalTime closeTime = entry.getCloseTime();
+
+            if (currentTime.isAfter(openTime) && currentTime.isBefore(closeTime)) {
+                return String.format("Abierto (hasta las %s)", formatTime(closeTime));
+            } else if (currentTime.isBefore(openTime)) {
+                return String.format("Cerrado (abre a las %s)", formatTime(openTime));
+            } else {
+                return String.format("Cerrado (abierto mañana a las %s)", formatTime(openTime));
+            }
+        }
+
+        return "";
+    }
+
+    private String formatTime(LocalTime time) {
+        return String.format("%02d:%02d", time.getHour(), time.getMinute());
+    }
+
     private JoinPageDTO.VisitUsSectionDTO mapVisitUsSection() {
         JoinPageDTO.VisitUsSectionDTO.ContactDTO contact =
             new JoinPageDTO.VisitUsSectionDTO.ContactDTO(
@@ -175,18 +250,8 @@ public class GetDataJoinPageServiceImpl implements GetDataJoinPageService {
             );
 
         List<JoinPageDTO.VisitUsSectionDTO.ActionDTO> actions = List.of(
-            new JoinPageDTO.VisitUsSectionDTO.ActionDTO(
-                "Llámanos",
-                "phone",
-                "044544011",
-                false
-            ),
-            new JoinPageDTO.VisitUsSectionDTO.ActionDTO(
-                "WhatsApp",
-                "whatsapp",
-                "https://wa.me/51970003173",
-                true
-            )
+            new JoinPageDTO.VisitUsSectionDTO.ActionDTO("Llámanos", "phone", "044544011", false),
+            new JoinPageDTO.VisitUsSectionDTO.ActionDTO("WhatsApp", "whatsapp", "https://wa.me/51970003173", true)
         );
 
         return new JoinPageDTO.VisitUsSectionDTO(
