@@ -3,6 +3,15 @@ spring:
     url: jdbc:postgresql:///${DB_NAME:web-public-coopac-db}?cloudSqlInstance=${CLOUD_SQL_INSTANCE:coopac-elsalvador-backend:us-central1:coopac-elsalvador-web-public-db}&socketFactory=com.google.cloud.sql.postgres.SocketFactory&enableIamAuth=false
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+    # Optimizaciones de HikariCP para Cloud Run
+    hikari:
+      maximum-pool-size: 2
+      minimum-idle: 0
+      connection-timeout: 10000
+      idle-timeout: 120000
+      max-lifetime: 600000
+      leak-detection-threshold: 60000
+      auto-commit: true
 
   security:
     oauth2:
@@ -17,6 +26,26 @@ spring:
         provider:
           google:
             issuer-uri: https://accounts.google.com
+
+  # Lazy initialization para reducir tiempo de startup
+  main:
+    lazy-initialization: true
+
+  jpa:
+    # No hacer validación de schema en startup
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+        # Optimizaciones de Hibernate
+        jdbc:
+          batch_size: 10
+          fetch_size: 50
+        order_inserts: true
+        order_updates: true
 
   servlet:
     multipart:
@@ -34,17 +63,33 @@ spring:
       secure: true
       same-site: none
       path: /
-      # SIN punto inicial para compatibilidad con Tomcat RFC 6265
       domain: coopacelsalvador.com
 
+  jackson:
+    time-zone: America/Lima
+    serialization:
+      write-dates-as-timestamps: false
+
 server:
+  port: ${PORT:8080}
+  shutdown: graceful
+  shutdown-wait-time: 30s
+  forward-headers-strategy: framework
+  compression:
+    enabled: true
+    min-response-size: 1024
   servlet:
     session:
       cookie:
         same-site: none
         secure: true
-        # SIN punto inicial
         domain: coopacelsalvador.com
+  tomcat:
+    threads:
+      max: 20
+      min-spare: 2
+    accept-count: 50
+    max-connections: 200
 
 app:
   frontend:
@@ -66,7 +111,24 @@ file:
 
 logging:
   level:
+    root: WARN
     com.elsalvador.coopac: INFO
-    org.springframework: INFO
-    org.springframework.security: DEBUG
-    org.springframework.security.oauth2: DEBUG
+    org.springframework.boot: WARN
+    org.springframework.security: WARN
+  format: json
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+    metrics:
+      enabled: true
+  simple:
+    metrics:
+      export:
+        enabled: true

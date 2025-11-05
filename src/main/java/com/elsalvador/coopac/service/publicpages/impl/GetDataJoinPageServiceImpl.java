@@ -27,6 +27,9 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class GetDataJoinPageServiceImpl implements GetDataJoinPageService {
 
+    private static final String WHY_JOIN_TITLE = "¿Por qué asociarte?";
+    private static final String WHY_JOIN_DESCRIPTION = "Ser socio no es solo abrir una cuenta. Es pertenecer a una cooperativa que responde cuando más lo necesitas.";
+
     private final JoinSectionRepository joinSectionRepository;
     private final ContactScheduleEntriesRepository contactScheduleEntriesRepository;
 
@@ -75,8 +78,8 @@ public class GetDataJoinPageServiceImpl implements GetDataJoinPageService {
         }
 
         return new JoinPageDTO.WhyJoinSectionDTO(
-            "¿Por qué asociarte?",
-            "Ser socio no es solo abrir una cuenta. Es pertenecer a una cooperativa que responde cuando más lo necesitas.",
+            WHY_JOIN_TITLE,
+            WHY_JOIN_DESCRIPTION,
             benefitDTOs
         );
     }
@@ -230,6 +233,10 @@ public class GetDataJoinPageServiceImpl implements GetDataJoinPageService {
             } else if (currentTime.isBefore(openTime)) {
                 return String.format("Cerrado (abre a las %s)", formatTime(openTime));
             } else {
+                // Si es sábado, el próximo día de atención es lunes
+                if (dayOfWeek == DayOfWeek.SATURDAY) {
+                    return String.format("Cerrado (abierto lunes a las %s)", formatTime(openTime));
+                }
                 return String.format("Cerrado (abierto mañana a las %s)", formatTime(openTime));
             }
         }
