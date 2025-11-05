@@ -1,17 +1,18 @@
 spring:
   datasource:
-    url: jdbc:postgresql:///${DB_NAME:web-public-coopac-db}?cloudSqlInstance=${CLOUD_SQL_INSTANCE:coopac-elsalvador-backend:us-central1:coopac-elsalvador-web-public-db}&socketFactory=com.google.cloud.sql.postgres.SocketFactory&enableIamAuth=false
+    url: jdbc:postgresql:///${DB_NAME:web-public-coopac-db}?cloudSqlInstance=${CLOUD_SQL_INSTANCE:coopac-elsalvador-backend:us-central1:coopac-elsalvador-web-public-db}&socketFactory=com.google.cloud.sql.postgres.SocketFactory&enableIamAuth=false&loginTimeout=10&socketTimeout=10
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     # Optimizaciones de HikariCP para Cloud Run
     hikari:
-      maximum-pool-size: 2
-      minimum-idle: 0
-      connection-timeout: 10000
-      idle-timeout: 120000
-      max-lifetime: 600000
-      leak-detection-threshold: 60000
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 5000
+      idle-timeout: 60000
+      max-lifetime: 300000
+      leak-detection-threshold: 30000
       auto-commit: true
+      initialization-fail-timeout: 1000
 
   security:
     oauth2:
@@ -27,15 +28,16 @@ spring:
           google:
             issuer-uri: https://accounts.google.com
 
-  # Lazy initialization para reducir tiempo de startup
+  # Lazy initialization deshabilitada para startup predecible
   main:
-    lazy-initialization: true
+    lazy-initialization: false
 
   jpa:
-    # No hacer validación de schema en startup
+    # Validación de schema en startup
     hibernate:
       ddl-auto: validate
     show-sql: false
+    defer-datasource-initialization: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -46,6 +48,7 @@ spring:
           fetch_size: 50
         order_inserts: true
         order_updates: true
+        generate_statistics: false
 
   servlet:
     multipart:
@@ -71,8 +74,8 @@ spring:
       write-dates-as-timestamps: false
 
 server:
-  shutdown: graceful
-  shutdown-wait-time: 30s
+  port: ${PORT:8080}
+  shutdown: immediate
   forward-headers-strategy: framework
   compression:
     enabled: true
@@ -85,10 +88,13 @@ server:
         domain: coopacelsalvador.com
   tomcat:
     threads:
-      max: 20
-      min-spare: 2
-    accept-count: 50
-    max-connections: 200
+      max: 50
+      min-spare: 5
+    accept-count: 100
+    max-connections: 500
+    connection-timeout: 5000
+    keep-alive-timeout: 15000
+    accept-backlog: 50
 
 app:
   frontend:
@@ -110,24 +116,25 @@ file:
 
 logging:
   level:
-    root: WARN
-    com.elsalvador.coopac: INFO
-    org.springframework.boot: WARN
-    org.springframework.security: WARN
+    root: ERROR
+    com.elsalvador.coopac: WARN
+    org.springframework.boot: ERROR
+    org.springframework.security: ERROR
   format: json
+  config: classpath:logback-prod.xml
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health
   endpoint:
     health:
-      show-details: always
-      show-components: always
+      show-details: when-authorized
+      show-components: when-authorized
     metrics:
-      enabled: true
+      enabled: false
   simple:
     metrics:
       export:
-        enabled: true
+        enabled: false
