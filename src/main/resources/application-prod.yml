@@ -71,7 +71,6 @@ spring:
       write-dates-as-timestamps: false
 
 server:
-  port: ${PORT:8080}
   shutdown: graceful
   shutdown-wait-time: 30s
   forward-headers-strategy: framework
