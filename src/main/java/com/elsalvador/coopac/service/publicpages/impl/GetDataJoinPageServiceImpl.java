@@ -30,6 +30,21 @@ public class GetDataJoinPageServiceImpl implements GetDataJoinPageService {
     private final JoinSectionRepository joinSectionRepository;
     private final ContactScheduleEntriesRepository contactScheduleEntriesRepository;
 
+    // Constantes de textos
+    private static final String WHY_JOIN_TITLE = "¿Por qué asociarte?";
+    private static final String WHY_JOIN_DESCRIPTION = "Ser socio no es solo abrir una cuenta. Es pertenecer a una cooperativa que responde cuando más lo necesitas.";
+    private static final String SCHEDULE_TITLE = "Horarios de Atención";
+    private static final String COST_TITLE = "Aportes y Cuotas";
+    private static final String COST_DESCRIPTION = "Esto es lo que necesitas para iniciar como socio.";
+    private static final String COST_NOTE = "Estos aportes te permiten acceder a todos los servicios de la cooperativa.";
+    private static final String REQUIREMENTS_TITLE = "Requisitos para Asociarte";
+    private static final String REQUIREMENTS_DESCRIPTION = "Documentos necesarios según la edad del solicitante.";
+    private static final String VISIT_US_TITLE = "Ven a Afiliarte";
+    private static final String VISIT_US_DESCRIPTION = "Te esperamos en nuestra oficina principal.";
+    private static final String CONTACT_LABEL = "Central / COOPERAFONO";
+    private static final String CONTACT_PHONE = "044-544011";
+    private static final String CONTACT_WHATSAPP = "970003173";
+
     @Override
     public JoinPageDTO getJoinPageData() {
         log.debug("Obteniendo datos de página Join/Asóciate Ya");
@@ -75,8 +90,8 @@ public class GetDataJoinPageServiceImpl implements GetDataJoinPageService {
         }
 
         return new JoinPageDTO.WhyJoinSectionDTO(
-            "¿Por qué asociarte?",
-            "Ser socio no es solo abrir una cuenta. Es pertenecer a una cooperativa que responde cuando más lo necesitas.",
+            WHY_JOIN_TITLE,
+            WHY_JOIN_DESCRIPTION,
             benefitDTOs
         );
     }
@@ -135,10 +150,10 @@ public class GetDataJoinPageServiceImpl implements GetDataJoinPageService {
         }
 
         return new JoinPageDTO.CostToJoinSectionDTO(
-            "Aportes y Cuotas",
-            "Esto es lo que necesitas para iniciar como socio.",
+            COST_TITLE,
+            COST_DESCRIPTION,
             items,
-            "Estos aportes te permiten acceder a todos los servicios de la cooperativa."
+            COST_NOTE
         );
     }
 
@@ -158,8 +173,8 @@ public class GetDataJoinPageServiceImpl implements GetDataJoinPageService {
         }
 
         return new JoinPageDTO.RequirementsToJoinSectionDTO(
-            "Requisitos para Asociarte",
-            "Documentos necesarios según la edad del solicitante.",
+            REQUIREMENTS_TITLE,
+            REQUIREMENTS_DESCRIPTION,
             groupDTOs
         );
     }
@@ -168,7 +183,7 @@ public class GetDataJoinPageServiceImpl implements GetDataJoinPageService {
         List<ContactScheduleEntries> scheduleEntries = contactScheduleEntriesRepository.findByIsActiveTrueOrderByDisplayOrderAsc();
 
         if (scheduleEntries.isEmpty()) {
-            return new JoinPageDTO.ScheduleSectionDTO("Horarios de Atención", new ArrayList<>(), "");
+            return new JoinPageDTO.ScheduleSectionDTO(SCHEDULE_TITLE, new ArrayList<>(), "");
         }
 
         ZonedDateTime peruTime = ZonedDateTime.now(ZoneId.of("America/Lima"));
@@ -181,7 +196,7 @@ public class GetDataJoinPageServiceImpl implements GetDataJoinPageService {
             .orElse(null);
 
         if (todaySchedule == null) {
-            return new JoinPageDTO.ScheduleSectionDTO("Horarios de Atención", new ArrayList<>(), "");
+            return new JoinPageDTO.ScheduleSectionDTO(SCHEDULE_TITLE, new ArrayList<>(), "");
         }
 
         JoinPageDTO.ScheduleSectionDTO.ScheduleItemDTO todayItem =
@@ -195,7 +210,7 @@ public class GetDataJoinPageServiceImpl implements GetDataJoinPageService {
 
         String note = calculateOpenStatus(todaySchedule, todayDayOfWeek, currentTime);
 
-        return new JoinPageDTO.ScheduleSectionDTO("Horarios de Atención", List.of(todayItem), note);
+        return new JoinPageDTO.ScheduleSectionDTO(SCHEDULE_TITLE, List.of(todayItem), note);
     }
 
     private boolean isDayMatchingEntry(ContactScheduleEntries entry, DayOfWeek dayOfWeek) {
@@ -244,9 +259,9 @@ public class GetDataJoinPageServiceImpl implements GetDataJoinPageService {
     private JoinPageDTO.VisitUsSectionDTO mapVisitUsSection() {
         JoinPageDTO.VisitUsSectionDTO.ContactDTO contact =
             new JoinPageDTO.VisitUsSectionDTO.ContactDTO(
-                "Central / COOPERAFONO",
-                "044-544011",
-                "970003173"
+                CONTACT_LABEL,
+                CONTACT_PHONE,
+                CONTACT_WHATSAPP
             );
 
         List<JoinPageDTO.VisitUsSectionDTO.ActionDTO> actions = List.of(
@@ -255,8 +270,8 @@ public class GetDataJoinPageServiceImpl implements GetDataJoinPageService {
         );
 
         return new JoinPageDTO.VisitUsSectionDTO(
-            "Ven a Afiliarte",
-            "Te esperamos en nuestra oficina principal.",
+            VISIT_US_TITLE,
+            VISIT_US_DESCRIPTION,
             contact,
             actions
         );
