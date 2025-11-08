@@ -1,0 +1,44 @@
+# Configuración de Cloud Run para optimizar el startup
+# Este archivo es referencial - Los valores reales deben configurarse en Cloud Console o gcloud CLI
+
+# STARTUP_PROBE (timeout largo para permitir que inicie)
+# GET /actuator/health/readiness
+# Initial Delay: 0s
+# Timeout: 5s
+# Period: 10s
+# Max Retries: 120 (máximo permitido = 12 minutos de espera)
+
+# READINESS_PROBE (verifica si está listo para recibir tráfico)
+# GET /actuator/health/readiness
+# Initial Delay: 5s
+# Timeout: 3s
+# Period: 5s
+# Max Retries: 3
+
+# LIVENESS_PROBE (verifica si sigue vivo)
+# GET /actuator/health/liveness
+# Initial Delay: 30s
+# Timeout: 3s
+# Period: 10s
+# Max Retries: 3
+
+# Configuración recomendada para gcloud:
+#
+# gcloud run deploy web-public-backend-prod \
+#   --image gcr.io/PROJECT_ID/web-public-backend:latest \
+#   --region us-central1 \
+#   --timeout 3600 \
+#   --memory 512Mi \
+#   --cpu 1 \
+#   --concurrency 80 \
+#   --min-instances 1 \
+#   --max-instances 10 \
+#   --port 8080 \
+#   --set-env-vars "GOOGLE_CLIENT_ID=xxx,GOOGLE_CLIENT_SECRET=xxx,DB_USERNAME=xxx,DB_PASSWORD=xxx,GCS_BUCKET_NAME=xxx" \
+#   --service-account web-backend-sa@PROJECT_ID.iam.gserviceaccount.com
+
+# Notas:
+# - startup-probe se configura automáticamente basándose en el HEALTHCHECK del Dockerfile
+# - La timeout total en Cloud Run es de ~10 minutos, pero recomendamos startup < 2 minutos
+# - Con las optimizaciones aplicadas, el startup debería ser ~30-45 segundos
+
