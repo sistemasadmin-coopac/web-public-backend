@@ -2,6 +2,10 @@ spring:
   application:
     name: cac-elsalvador-backend
 
+  # Lazy initialization para startup más rápido en Cloud Run
+  main:
+    lazy-initialization: true
+
   # Configuración de seguridad OAuth2
   security:
     oauth2:
