@@ -34,44 +34,73 @@ spring:
       enabled: true
       max-file-size: 10MB
       max-request-size: 10MB
+    session:
+      timeout: 3600s
+      cookie:
+        name: SESSIONID
+        http-only: true
+        secure: false
+        same-site: none
+        path: /
+
+  # Configuración de seguridad OAuth2
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: test-client-id.apps.googleusercontent.com
+            client-secret: test-client-secret
+            scope: openid,profile,email
+            authorization-grant-type: authorization_code
+            redirect-uri: "http://localhost:8080/login/oauth2/code/google"
+        provider:
+          google:
+            issuer-uri: https://accounts.google.com
+
+  jackson:
+    time-zone: America/Lima
 
 # Server configuration for tests
 server:
   port: 0
+  shutdown: graceful
+  forward-headers-strategy: framework
+  compression:
+    enabled: true
 
-# Google OAuth Configuration (valores de test)
-google:
-  client:
-    id: test-client-id.apps.googleusercontent.com
-
-# JWT Configuration (valores de test)
-jwt:
-  secret: test_secret_key_for_testing_purposes_must_be_at_least_256_bits_long
-  expiration: 86400000
-
-# Administradores autorizados (valores de test)
+# Configuración de aplicación
 app:
+  frontend:
+    url: http://localhost:4200
   authorized:
     admins: test@example.com,admin@test.com
 
-# CORS Configuration (valores de test)
+# CORS Configuration
 cors:
   allowed:
     origins:
       - http://localhost:4200
       - http://localhost:3000
+      - https://coopacelsalvador.com
 
-# File storage config (valores de test)
+# File Storage Configuration
 file:
   storage:
     type: local
     local:
-      base-path: ./test-uploads
-      base-url: http://localhost:8080/uploads
+      base-path: ./uploads
+    gcs:
+      bucket-name: test-bucket
+      project-id: test-project
 
-# Logging configuration for tests
-logging:
-  level:
-    com.elsalvador.coopac: INFO
-    org.hibernate: WARN
-    org.springframework: WARN
+# Google OAuth Configuration
+google:
+  client:
+    id: test-client-id.apps.googleusercontent.com
+
+# JWT Configuration
+jwt:
+  secret: test_secret_key_for_testing_purposes_must_be_at_least_256_bits_long
+  expiration: 86400000
+
