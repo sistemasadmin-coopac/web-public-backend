@@ -48,16 +48,6 @@ spring:
       max-file-size: 50MB
       max-request-size: 50MB
 
-    # Configuración de sesión para desarrollo con SPA en puerto diferente
-    session:
-      timeout: 3600s
-      cookie:
-        name: SESSIONID
-        http-only: true
-        secure: false         # false en desarrollo (localhost HTTP)
-        same-site: none       # None permite cookies entre localhost:8080 y localhost:4200
-        path: /
-
   jackson:
     time-zone: America/Lima
 
