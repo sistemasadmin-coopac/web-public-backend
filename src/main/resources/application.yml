@@ -80,6 +80,18 @@ management:
     readinessState:
       enabled: true
 
+# Configuración de Springdoc OpenAPI
+springdoc:
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
+  api-docs:
+    path: /v3/api-docs
+  show-actuator: true
+
 # Configuración de aplicación
 app:
   frontend:
