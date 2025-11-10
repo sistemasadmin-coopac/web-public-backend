@@ -11,10 +11,10 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
@@ -65,7 +65,7 @@ public class SecurityConfig {
                 // ✅ PROTECCIÓN 3: Headers de seguridad
                 .headers(headers -> headers
                         // Prevenir clickjacking
-                        .frameOptions(frameOptions -> frameOptions.deny())
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::deny)
                         // Prevenir MIME sniffing
                         .contentTypeOptions(Customizer.withDefaults())
                         // XSS Protection
@@ -116,7 +116,15 @@ public class SecurityConfig {
                                 "/oauth2/**",
                                 "/error",
                                 "/",
-                                "/health"
+                                "/health",
+                                // Swagger UI y OpenAPI - accesibles para documentación
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs",
+                                "/v3/api-docs/**",
+                                "/swagger-resources",
+                                "/swagger-resources/**",
+                                "/webjars/**"
                         ).permitAll()
 
                         // ✅ CRÍTICO: Endpoints de administración requieren ROL ADMIN
