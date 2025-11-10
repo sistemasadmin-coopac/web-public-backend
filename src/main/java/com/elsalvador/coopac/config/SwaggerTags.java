@@ -61,11 +61,12 @@ public final class SwaggerTags {
      */
     public static final class Home {
         public static final String TAG_NAME = "🏠 Home - Administración";
-        public static final String TAG_DESCRIPTION = "Gestión de la página de inicio: promociones, banners y contenido destacado";
+        public static final String TAG_DESCRIPTION = "Gestión de la página de inicio: promociones, bloques CTA, estadísticas";
 
         public static final String EMOJI_GENERAL = "🏠";
-        public static final String EMOJI_PROMOTIONS = "🎉";
-        public static final String EMOJI_BANNERS = "📢";
+        public static final String EMOJI_PROMOTIONS = "🎯";
+        public static final String EMOJI_CTA_BLOCKS = "📢";
+        public static final String EMOJI_STATS = "📊";
     }
 
     // ==================== FINANCIALS ====================
@@ -74,10 +75,24 @@ public final class SwaggerTags {
      */
     public static final class Financials {
         public static final String TAG_NAME = "💰 Financials - Administración";
-        public static final String TAG_DESCRIPTION = "Gestión de reportes financieros y documentos relacionados";
+        public static final String TAG_DESCRIPTION = "Gestión completa de reportes y categorías financieras";
 
         public static final String EMOJI_GENERAL = "💰";
-        public static final String EMOJI_REPORTS = "📊";
+        public static final String EMOJI_CATEGORIES = "📂";
+        public static final String EMOJI_REPORTS = "📄";
+    }
+
+    // ==================== HEADERS ====================
+    /**
+     * Tag para endpoints de administración de headers de páginas
+     */
+    public static final class Headers {
+        public static final String TAG_NAME = "🎨 Headers - Administración";
+        public static final String TAG_DESCRIPTION = "Gestión de headers y tarjetas de encabezados de páginas";
+
+        public static final String EMOJI_GENERAL = "🎨";
+        public static final String EMOJI_PAGE_HEADERS = "📑";
+        public static final String EMOJI_CARDS = "🗂️";
     }
 
     // ==================== SITE ====================
@@ -103,6 +118,18 @@ public final class SwaggerTags {
         public static final String EMOJI_LOGIN = "🔑";
         public static final String EMOJI_LOGOUT = "🚪";
         public static final String EMOJI_PROFILE = "👤";
+    }
+
+    // ==================== JOIN ====================
+    public static final class Join {
+        public static final String TAG_NAME = "🤝 Join - Administración";
+        public static final String TAG_DESCRIPTION = "Gestión de la sección Join/Asóciate Ya: beneficios, costos, requisitos y beneficios especiales";
+
+        public static final String EMOJI_GENERAL = "🤝";
+        public static final String EMOJI_BENEFITS = "🎁";
+        public static final String EMOJI_COSTS = "💵";
+        public static final String EMOJI_REQUIREMENTS = "📋";
+        public static final String EMOJI_SPECIAL_BENEFITS = "⭐";
     }
 }
 

@@ -1,7 +1,16 @@
 package com.elsalvador.coopac.controller.admin.financial;
 
+import com.elsalvador.coopac.config.SwaggerTags;
 import com.elsalvador.coopac.dto.admin.FinancialAdminDTO;
+import com.elsalvador.coopac.dto.response.ErrorResponseDTO;
 import com.elsalvador.coopac.service.admin.financial.ManageFinancialReportsService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,25 +23,70 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Controller para gestionar reportes financieros
- */
 @RestController
 @RequestMapping("/api/admin/financial/reports")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(
+    name = SwaggerTags.Financials.TAG_NAME,
+    description = SwaggerTags.Financials.TAG_DESCRIPTION
+)
 public class FinancialReportsController {
 
     private final ManageFinancialReportsService reportsService;
 
-    /**
-     * Crea un nuevo reporte financiero con archivos
-     */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(
+        summary = SwaggerTags.Financials.EMOJI_REPORTS + " Crear nuevo reporte",
+        description = "Crea un nuevo reporte financiero con archivos adjuntos"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "201",
+            description = "Reporte creado exitosamente",
+            content = @Content(mediaType = "application/json")
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Datos inválidos",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponseDTO.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "No autenticado",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponseDTO.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "No autorizado",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponseDTO.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Error interno del servidor",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponseDTO.class)
+            )
+        )
+    })
     public ResponseEntity<FinancialAdminDTO.FinancialReportResponse> createReport(
             @Valid @ModelAttribute FinancialAdminDTO.FinancialReportRequest dto,
-            @RequestParam(value = "file", required = false) MultipartFile file,
-            @RequestParam(value = "thumbnail", required = false) MultipartFile thumbnail) {
+            @RequestParam(value = "file", required = false)
+            @Parameter(description = "Archivo PDF del reporte (opcional)")
+            MultipartFile file,
+            @RequestParam(value = "thumbnail", required = false)
+            @Parameter(description = "Imagen miniatura del reporte (opcional)")
+            MultipartFile thumbnail) {
 
         log.info("POST /api/admin/financial/reports - Creando nuevo reporte: {}", dto.getTitle());
 
@@ -41,15 +95,69 @@ public class FinancialReportsController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    /**
-     * Actualiza un reporte financiero existente
-     */
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(
+        summary = SwaggerTags.Financials.EMOJI_REPORTS + " Actualizar reporte",
+        description = "Actualiza un reporte financiero existente"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Reporte actualizado exitosamente",
+            content = @Content(mediaType = "application/json")
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Datos inválidos",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponseDTO.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "No autenticado",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponseDTO.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "No autorizado",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponseDTO.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Reporte no encontrado",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponseDTO.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Error interno del servidor",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponseDTO.class)
+            )
+        )
+    })
     public ResponseEntity<FinancialAdminDTO.FinancialReportResponse> updateReport(
-            @PathVariable UUID id,
+            @PathVariable
+            @Parameter(description = "ID del reporte a actualizar")
+            UUID id,
             @Valid @ModelAttribute FinancialAdminDTO.FinancialReportUpdateRequest dto,
-            @RequestParam(value = "file", required = false) MultipartFile file,
-            @RequestParam(value = "thumbnail", required = false) MultipartFile thumbnail) {
+            @RequestParam(value = "file", required = false)
+            @Parameter(description = "Nuevo archivo PDF (opcional)")
+            MultipartFile file,
+            @RequestParam(value = "thumbnail", required = false)
+            @Parameter(description = "Nueva imagen miniatura (opcional)")
+            MultipartFile thumbnail) {
 
         log.info("PUT /api/admin/financial/reports/{} - Actualizando reporte", id);
 
@@ -58,32 +166,142 @@ public class FinancialReportsController {
         return ResponseEntity.ok(updated);
     }
 
-    /**
-     * Elimina un reporte financiero
-     */
     @DeleteMapping("/{id}")
+    @Operation(
+        summary = SwaggerTags.Financials.EMOJI_REPORTS + " Eliminar reporte",
+        description = "Elimina un reporte financiero"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Reporte eliminado exitosamente"),
+        @ApiResponse(
+            responseCode = "401",
+            description = "No autenticado",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponseDTO.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "No autorizado",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponseDTO.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Reporte no encontrado",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponseDTO.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Error interno del servidor",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponseDTO.class)
+            )
+        )
+    })
     public ResponseEntity<Void> deleteReport(@PathVariable UUID id) {
         log.info("DELETE /api/admin/financial/reports/{} - Eliminando reporte", id);
         reportsService.deleteReport(id);
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * Obtiene un reporte por ID
-     */
     @GetMapping("/{id}")
+    @Operation(
+        summary = SwaggerTags.Financials.EMOJI_REPORTS + " Obtener reporte por ID",
+        description = "Obtiene un reporte financiero específico"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Reporte obtenido exitosamente",
+            content = @Content(mediaType = "application/json")
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "No autenticado",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponseDTO.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "No autorizado",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponseDTO.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Reporte no encontrado",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponseDTO.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Error interno del servidor",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponseDTO.class)
+            )
+        )
+    })
     public ResponseEntity<FinancialAdminDTO.FinancialReportResponse> getReportById(@PathVariable UUID id) {
         log.debug("GET /api/admin/financial/reports/{} - Obteniendo reporte", id);
         FinancialAdminDTO.FinancialReportResponse report = reportsService.getReportById(id);
         return ResponseEntity.ok(report);
     }
 
-    /**
-     * Obtiene todos los reportes financieros
-     */
     @GetMapping
+    @Operation(
+        summary = SwaggerTags.Financials.EMOJI_REPORTS + " Obtener todos los reportes",
+        description = "Obtiene la lista de reportes financieros, opcionalmente filtrados por categoría"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Reportes obtenidos exitosamente",
+            content = @Content(mediaType = "application/json")
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "No autenticado",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponseDTO.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "No autorizado",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponseDTO.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Error interno del servidor",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponseDTO.class)
+            )
+        )
+    })
     public ResponseEntity<List<FinancialAdminDTO.FinancialReportResponse>> getAllReports(
-            @RequestParam(required = false) UUID categoryId) {
+            @RequestParam(required = false)
+            @Parameter(description = "ID de categoría para filtrar (opcional)")
+            UUID categoryId) {
         log.debug("GET /api/admin/financial/reports - Obteniendo reportes");
 
         List<FinancialAdminDTO.FinancialReportResponse> reports;
@@ -96,3 +314,4 @@ public class FinancialReportsController {
         return ResponseEntity.ok(reports);
     }
 }
+
