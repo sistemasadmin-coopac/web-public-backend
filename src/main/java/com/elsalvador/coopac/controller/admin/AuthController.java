@@ -1,5 +1,13 @@
 package com.elsalvador.coopac.controller.admin;
 
+import com.elsalvador.coopac.config.SwaggerTags;
+import com.elsalvador.coopac.dto.response.ErrorResponseDTO;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -20,9 +28,19 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = SwaggerTags.Auth.TAG_NAME, description = SwaggerTags.Auth.TAG_DESCRIPTION)
 public class AuthController {
 
     @GetMapping("/me")
+    @Operation(
+        summary = SwaggerTags.Auth.EMOJI_PROFILE + " Obtener usuario actual",
+        description = "Obtiene informacion del usuario autenticado incluyendo email, nombre y roles"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Usuario obtenido exitosamente"),
+        @ApiResponse(responseCode = "401", description = "No autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponseDTO.class))),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponseDTO.class)))
+    })
     public ResponseEntity<Map<String, Object>> getCurrentUser(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario no autenticado");
@@ -31,7 +49,7 @@ public class AuthController {
         Object principal = authentication.getPrincipal();
 
         if (!(principal instanceof OidcUser oidcUser)) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Tipo de autenticación no válido");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Tipo de autenticacion no valido");
         }
 
         // Extraer roles (sin el prefijo ROLE_)
@@ -54,11 +72,22 @@ public class AuthController {
     }
 
     @GetMapping("/logout")
+    @Operation(
+        summary = SwaggerTags.Auth.EMOJI_LOGOUT + " Cerrar sesion",
+        description = "Cierra la sesion del usuario autenticado"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Sesion cerrada exitosamente"),
+        @ApiResponse(responseCode = "401", description = "No autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponseDTO.class))),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponseDTO.class)))
+    })
     public ResponseEntity<Map<String, String>> logout() {
-        log.info("Cerrando sesión...");
+        log.info("Cerrando sesion...");
         return ResponseEntity.ok(Map.of(
-                "message", "Sesión cerrada correctamente",
+                "message", "Sesion cerrada correctamente",
                 "redirectUrl", "http://localhost:4200/login"
         ));
     }
 }
+
+
