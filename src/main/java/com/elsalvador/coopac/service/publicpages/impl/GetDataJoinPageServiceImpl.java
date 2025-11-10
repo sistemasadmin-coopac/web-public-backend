@@ -19,6 +19,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -84,7 +85,8 @@ public class GetDataJoinPageServiceImpl implements GetDataJoinPageService {
     private JoinPageDTO.WhyJoinSectionDTO.JoinBenefitDTO mapBenefit(JoinBenefit benefit) {
         return new JoinPageDTO.WhyJoinSectionDTO.JoinBenefitDTO(
             benefit.getTitle(),
-            benefit.getDescription()
+            benefit.getDescription(),
+            benefit.getIcon()
         );
     }
 
@@ -151,7 +153,7 @@ public class GetDataJoinPageServiceImpl implements GetDataJoinPageService {
                 .map(g -> new JoinPageDTO.RequirementsToJoinSectionDTO.RequirementGroupDTO(
                     g.getGroupLabel(),
                     g.getItems() != null ? g.getItems().stream()
-                        .filter(item -> item != null)
+                        .filter(Objects::nonNull)
                         .collect(Collectors.toList()) : new ArrayList<>()
                 ))
                 .collect(Collectors.toList());
@@ -193,7 +195,7 @@ public class GetDataJoinPageServiceImpl implements GetDataJoinPageService {
                 todaySchedule.getDisplayOrder()
             );
 
-        String note = calculateOpenStatus(todaySchedule, todayDayOfWeek, currentTime);
+        String note = calculateOpenStatus(todaySchedule, currentTime);
 
         return new JoinPageDTO.ScheduleSectionDTO("Horarios de Atención", List.of(todayItem), note);
     }
@@ -216,7 +218,7 @@ public class GetDataJoinPageServiceImpl implements GetDataJoinPageService {
         return false;
     }
 
-    private String calculateOpenStatus(ContactScheduleEntries entry, DayOfWeek dayOfWeek, LocalTime currentTime) {
+    private String calculateOpenStatus(ContactScheduleEntries entry, LocalTime currentTime) {
         if (entry.getIsClosed() != null && entry.getIsClosed()) {
             return "Cerrado";
         }

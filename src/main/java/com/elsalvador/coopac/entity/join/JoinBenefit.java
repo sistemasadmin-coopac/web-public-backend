@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -26,10 +25,12 @@ public class JoinBenefit {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    private String icon;
+
     private Integer sectionOrder;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "join_section_id")
+    @JoinColumn(name = "join_section_id", nullable = false)
     private JoinSection joinSection;
 }
 

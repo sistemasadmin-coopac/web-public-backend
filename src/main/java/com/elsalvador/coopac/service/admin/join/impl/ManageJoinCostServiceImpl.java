@@ -12,10 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
-import java.util.Comparator;
-import java.util.stream.Collectors;
 import java.util.stream.Collectors;
 
 /**
@@ -36,7 +35,7 @@ public class ManageJoinCostServiceImpl implements ManageJoinCostService {
 
         List<JoinCost> costs = costRepository.findAll().stream()
                 .sorted(Comparator.comparing(c -> c.getSectionOrder() != null ? c.getSectionOrder() : 0))
-                .collect(Collectors.toList());
+                .toList();
 
         List<JoinAdminDTO.JoinCostDTO> dtos = costs.stream()
                 .map(this::mapToDTO)
@@ -61,7 +60,7 @@ public class ManageJoinCostServiceImpl implements ManageJoinCostService {
 
         List<JoinAdminDTO.JoinCostDTO> dtos = costs.stream()
                 .map(this::mapToDTO)
-                .collect(Collectors.toList());
+                .toList();
 
         return new JoinAdminDTO.JoinSpecialBenefitRequirementListDTO(null, dtos.size());
     }
@@ -69,6 +68,11 @@ public class ManageJoinCostServiceImpl implements ManageJoinCostService {
     @Override
     public JoinAdminDTO.JoinCostDTO createCost(JoinAdminDTO.CreateUpdateJoinCostDTO dto) {
         log.info("Creando nuevo costo con etiqueta: {}", dto.label());
+
+        // Obtener la primera sección disponible
+        JoinSection section = joinSectionRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("No hay secciones Join disponibles"));
 
         // Calcular el siguiente orden
         Integer nextOrder = costRepository.findAll().stream()
@@ -80,10 +84,11 @@ public class ManageJoinCostServiceImpl implements ManageJoinCostService {
                 .label(dto.label())
                 .amount(dto.amount())
                 .sectionOrder(nextOrder)
+                .joinSection(section)
                 .build();
 
         JoinCost saved = costRepository.save(cost);
-        log.info("Costo creado con ID: {} - Orden: {}", saved.getId(), nextOrder);
+        log.info("Costo creado con ID: {} - Orden: {} - Sección: {}", saved.getId(), nextOrder, section.getId());
 
         return mapToDTO(saved);
     }
@@ -95,8 +100,14 @@ public class ManageJoinCostServiceImpl implements ManageJoinCostService {
         JoinCost cost = costRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Costo no encontrado con ID: " + id));
 
+        // Obtener la primera sección disponible
+        JoinSection section = joinSectionRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("No hay secciones Join disponibles"));
+
         cost.setLabel(dto.label());
         cost.setAmount(dto.amount());
+        cost.setJoinSection(section);
         // sectionOrder no se modifica, es gestionado por el backend
 
         JoinCost updated = costRepository.save(cost);

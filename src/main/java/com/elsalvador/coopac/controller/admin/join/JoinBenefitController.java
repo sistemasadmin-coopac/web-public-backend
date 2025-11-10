@@ -6,7 +6,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -31,6 +30,16 @@ public class JoinBenefitController {
     }
 
     /**
+     * Crea un nuevo beneficio
+     */
+    @PostMapping
+    public ResponseEntity<JoinAdminDTO.JoinBenefitDTO> createBenefit(
+            @Valid @RequestBody JoinAdminDTO.CreateUpdateJoinBenefitDTO dto) {
+        JoinAdminDTO.JoinBenefitDTO created = managementService.createBenefit(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    /**
      * Obtiene un beneficio por ID
      */
     @GetMapping("/{id}")
@@ -48,6 +57,15 @@ public class JoinBenefitController {
             @Valid @RequestBody JoinAdminDTO.CreateUpdateJoinBenefitDTO dto) {
         JoinAdminDTO.JoinBenefitDTO updated = managementService.updateBenefit(id, dto);
         return ResponseEntity.ok(updated);
+    }
+
+    /**
+     * Elimina un beneficio existente
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBenefit(@PathVariable UUID id) {
+        managementService.deleteBenefit(id);
+        return ResponseEntity.noContent().build();
     }
 }
 

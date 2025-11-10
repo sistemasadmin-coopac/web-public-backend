@@ -6,7 +6,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -31,6 +30,16 @@ public class JoinRequirementGroupController {
     }
 
     /**
+     * Crea un nuevo grupo de requisitos
+     */
+    @PostMapping
+    public ResponseEntity<JoinAdminDTO.JoinRequirementGroupDTO> createGroup(
+            @Valid @RequestBody JoinAdminDTO.CreateUpdateJoinRequirementGroupDTO dto) {
+        JoinAdminDTO.JoinRequirementGroupDTO created = managementService.createGroup(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    /**
      * Obtiene un grupo de requisitos por ID
      */
     @GetMapping("/{id}")
@@ -48,6 +57,15 @@ public class JoinRequirementGroupController {
             @Valid @RequestBody JoinAdminDTO.CreateUpdateJoinRequirementGroupDTO dto) {
         JoinAdminDTO.JoinRequirementGroupDTO updated = managementService.updateGroup(id, dto);
         return ResponseEntity.ok(updated);
+    }
+
+    /**
+     * Elimina un grupo de requisitos existente
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteGroup(@PathVariable UUID id) {
+        managementService.deleteGroup(id);
+        return ResponseEntity.noContent().build();
     }
 }
 
