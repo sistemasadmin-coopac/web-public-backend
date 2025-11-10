@@ -53,8 +53,7 @@ public class JoinAdminDTO {
             String title,
             @NotBlank(message = "La descripción es requerida")
             String description,
-            @NotNull(message = "El orden de la sección es requerido")
-            Integer sectionOrder
+            String icon
     ) {}
 
     /**
@@ -64,7 +63,8 @@ public class JoinAdminDTO {
             @NotBlank(message = "El título es requerido")
             String title,
             @NotBlank(message = "La descripción es requerida")
-            String description
+            String description,
+            String icon
     ) {}
 
     /**

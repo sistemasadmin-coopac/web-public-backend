@@ -57,7 +57,7 @@ public class ManageJoinSectionServiceImpl implements ManageJoinSectionService {
                                 b.getId(),
                                 b.getTitle(),
                                 b.getDescription(),
-                                b.getSectionOrder()
+                                b.getIcon()
                         ))
                         .collect(Collectors.toList()) : null,
                 section.getCosts() != null ? section.getCosts().stream()

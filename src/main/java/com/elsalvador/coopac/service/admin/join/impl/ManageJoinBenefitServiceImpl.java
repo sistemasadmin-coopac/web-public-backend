@@ -2,8 +2,10 @@ package com.elsalvador.coopac.service.admin.join.impl;
 
 import com.elsalvador.coopac.dto.admin.JoinAdminDTO;
 import com.elsalvador.coopac.entity.join.JoinBenefit;
+import com.elsalvador.coopac.entity.join.JoinSection;
 import com.elsalvador.coopac.exception.ResourceNotFoundException;
 import com.elsalvador.coopac.repository.join.JoinBenefitRepository;
+import com.elsalvador.coopac.repository.join.JoinSectionRepository;
 import com.elsalvador.coopac.service.admin.join.ManageJoinBenefitService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 import java.util.Comparator;
-import java.util.stream.Collectors;
 import java.util.stream.Collectors;
 
 /**
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 public class ManageJoinBenefitServiceImpl implements ManageJoinBenefitService {
 
     private final JoinBenefitRepository benefitRepository;
+    private final JoinSectionRepository sectionRepository;
 
     @Override
     public JoinAdminDTO.JoinBenefitListDTO getAllBenefits() {
@@ -33,7 +35,7 @@ public class ManageJoinBenefitServiceImpl implements ManageJoinBenefitService {
 
         List<JoinBenefit> benefits = benefitRepository.findAll().stream()
                 .sorted(Comparator.comparing(b -> b.getSectionOrder() != null ? b.getSectionOrder() : 0))
-                .collect(Collectors.toList());
+                .toList();
 
         List<JoinAdminDTO.JoinBenefitDTO> dtos = benefits.stream()
                 .map(this::mapToDTO)
@@ -58,7 +60,7 @@ public class ManageJoinBenefitServiceImpl implements ManageJoinBenefitService {
 
         List<JoinAdminDTO.JoinBenefitDTO> dtos = benefits.stream()
                 .map(this::mapToDTO)
-                .collect(Collectors.toList());
+                .toList();
 
         return new JoinAdminDTO.JoinSpecialBenefitRequirementListDTO(null, dtos.size());
     }
@@ -66,6 +68,11 @@ public class ManageJoinBenefitServiceImpl implements ManageJoinBenefitService {
     @Override
     public JoinAdminDTO.JoinBenefitDTO createBenefit(JoinAdminDTO.CreateUpdateJoinBenefitDTO dto) {
         log.info("Creando nuevo beneficio con título: {}", dto.title());
+
+        // Obtener la primera sección disponible
+        JoinSection section = sectionRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("No hay secciones Join disponibles"));
 
         // Calcular el siguiente orden
         Integer nextOrder = benefitRepository.findAll().stream()
@@ -76,11 +83,13 @@ public class ManageJoinBenefitServiceImpl implements ManageJoinBenefitService {
         JoinBenefit benefit = JoinBenefit.builder()
                 .title(dto.title())
                 .description(dto.description())
+                .icon(dto.icon())
                 .sectionOrder(nextOrder)
+                .joinSection(section)
                 .build();
 
         JoinBenefit saved = benefitRepository.save(benefit);
-        log.info("Beneficio creado con ID: {} - Orden: {}", saved.getId(), nextOrder);
+        log.info("Beneficio creado con ID: {} - Orden: {} - Sección: {}", saved.getId(), nextOrder, section.getId());
 
         return mapToDTO(saved);
     }
@@ -92,8 +101,15 @@ public class ManageJoinBenefitServiceImpl implements ManageJoinBenefitService {
         JoinBenefit benefit = benefitRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Beneficio no encontrado con ID: " + id));
 
+        // Obtener la primera sección disponible
+        JoinSection section = sectionRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("No hay secciones Join disponibles"));
+
         benefit.setTitle(dto.title());
         benefit.setDescription(dto.description());
+        benefit.setIcon(dto.icon());
+        benefit.setJoinSection(section);
         // sectionOrder no se modifica, es gestionado por el backend
 
         JoinBenefit updated = benefitRepository.save(benefit);
@@ -121,7 +137,7 @@ public class ManageJoinBenefitServiceImpl implements ManageJoinBenefitService {
                 benefit.getId(),
                 benefit.getTitle(),
                 benefit.getDescription(),
-                benefit.getSectionOrder()
+                benefit.getIcon()
         );
     }
 }

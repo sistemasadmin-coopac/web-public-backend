@@ -6,7 +6,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -31,6 +30,16 @@ public class JoinCostController {
     }
 
     /**
+     * Crea un nuevo costo
+     */
+    @PostMapping
+    public ResponseEntity<JoinAdminDTO.JoinCostDTO> createCost(
+            @Valid @RequestBody JoinAdminDTO.CreateUpdateJoinCostDTO dto) {
+        JoinAdminDTO.JoinCostDTO created = managementService.createCost(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    /**
      * Obtiene un costo por ID
      */
     @GetMapping("/{id}")
@@ -48,6 +57,15 @@ public class JoinCostController {
             @Valid @RequestBody JoinAdminDTO.CreateUpdateJoinCostDTO dto) {
         JoinAdminDTO.JoinCostDTO updated = managementService.updateCost(id, dto);
         return ResponseEntity.ok(updated);
+    }
+
+    /**
+     * Elimina un costo existente
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCost(@PathVariable UUID id) {
+        managementService.deleteCost(id);
+        return ResponseEntity.noContent().build();
     }
 }
 

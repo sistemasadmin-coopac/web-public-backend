@@ -2,8 +2,10 @@ package com.elsalvador.coopac.service.admin.join.impl;
 
 import com.elsalvador.coopac.dto.admin.JoinAdminDTO;
 import com.elsalvador.coopac.entity.join.JoinRequirementGroup;
+import com.elsalvador.coopac.entity.join.JoinSection;
 import com.elsalvador.coopac.exception.ResourceNotFoundException;
 import com.elsalvador.coopac.repository.join.JoinRequirementGroupRepository;
+import com.elsalvador.coopac.repository.join.JoinSectionRepository;
 import com.elsalvador.coopac.service.admin.join.ManageJoinRequirementGroupService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 import java.util.Comparator;
-import java.util.stream.Collectors;
 import java.util.stream.Collectors;
 
 /**
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 public class ManageJoinRequirementGroupServiceImpl implements ManageJoinRequirementGroupService {
 
     private final JoinRequirementGroupRepository groupRepository;
+    private final JoinSectionRepository joinSectionRepository;
 
     @Override
     public JoinAdminDTO.JoinRequirementGroupListDTO getAllGroups() {
@@ -33,7 +35,7 @@ public class ManageJoinRequirementGroupServiceImpl implements ManageJoinRequirem
 
         List<JoinRequirementGroup> groups = groupRepository.findAll().stream()
                 .sorted(Comparator.comparing(g -> g.getSectionOrder() != null ? g.getSectionOrder() : 0))
-                .collect(Collectors.toList());
+                .toList();
 
         List<JoinAdminDTO.JoinRequirementGroupDTO> dtos = groups.stream()
                 .map(this::mapToDTO)
@@ -58,7 +60,7 @@ public class ManageJoinRequirementGroupServiceImpl implements ManageJoinRequirem
 
         List<JoinAdminDTO.JoinRequirementGroupDTO> dtos = groups.stream()
                 .map(this::mapToDTO)
-                .collect(Collectors.toList());
+                .toList();
 
         return new JoinAdminDTO.JoinSpecialBenefitRequirementListDTO(null, dtos.size());
     }
@@ -66,6 +68,11 @@ public class ManageJoinRequirementGroupServiceImpl implements ManageJoinRequirem
     @Override
     public JoinAdminDTO.JoinRequirementGroupDTO createGroup(JoinAdminDTO.CreateUpdateJoinRequirementGroupDTO dto) {
         log.info("Creando nuevo grupo de requisitos con etiqueta: {}", dto.groupLabel());
+
+        // Obtener la primera sección disponible
+        JoinSection section = joinSectionRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("No hay secciones Join disponibles"));
 
         // Calcular el siguiente orden
         Integer nextOrder = groupRepository.findAll().stream()
@@ -77,10 +84,11 @@ public class ManageJoinRequirementGroupServiceImpl implements ManageJoinRequirem
                 .groupLabel(dto.groupLabel())
                 .items(dto.items())
                 .sectionOrder(nextOrder)
+                .joinSection(section)
                 .build();
 
         JoinRequirementGroup saved = groupRepository.save(group);
-        log.info("Grupo de requisitos creado con ID: {} - Orden: {}", saved.getId(), nextOrder);
+        log.info("Grupo de requisitos creado con ID: {} - Orden: {} - Sección: {}", saved.getId(), nextOrder, section.getId());
 
         return mapToDTO(saved);
     }
@@ -92,8 +100,14 @@ public class ManageJoinRequirementGroupServiceImpl implements ManageJoinRequirem
         JoinRequirementGroup group = groupRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Grupo de requisitos no encontrado con ID: " + id));
 
+        // Obtener la primera sección disponible
+        JoinSection section = joinSectionRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("No hay secciones Join disponibles"));
+
         group.setGroupLabel(dto.groupLabel());
         group.setItems(dto.items());
+        group.setJoinSection(section);
         // sectionOrder no se modifica, es gestionado por el backend
 
         JoinRequirementGroup updated = groupRepository.save(group);

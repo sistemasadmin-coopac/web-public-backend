@@ -26,7 +26,8 @@ public record JoinPageDTO(
     ) {
         public record JoinBenefitDTO(
             String title,
-            String description
+            String description,
+            String icon
         ) {}
     }
 
