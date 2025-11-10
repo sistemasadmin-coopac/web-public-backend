@@ -1,7 +1,10 @@
 package com.elsalvador.coopac.controller.admin.product;
 
+import com.elsalvador.coopac.config.SwaggerTags;
 import com.elsalvador.coopac.dto.admin.ProductsAdminDTO;
 import com.elsalvador.coopac.service.admin.product.ManageProductStepsService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -11,74 +14,41 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Controller para administración de pasos de productos
- */
 @RestController
 @RequestMapping("/api/admin/products")
 @RequiredArgsConstructor
+@Tag(name = SwaggerTags.Products.TAG_NAME, description = SwaggerTags.Products.TAG_DESCRIPTION)
 public class ProductStepsController {
 
     private final ManageProductStepsService manageProductStepsService;
 
-    /**
-     * Añade un paso a un producto
-     */
     @PostMapping("/{productId}/steps")
-    public ResponseEntity<ProductsAdminDTO.ProductStepDTO> addStep(
-            @PathVariable UUID productId,
-            @Valid @RequestBody ProductsAdminDTO.CreateProductStepDTO createDTO) {
-        ProductsAdminDTO.ProductStepDTO step =
-                manageProductStepsService.addStep(productId, createDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(step);
+    @Operation(summary = SwaggerTags.Products.EMOJI_GENERAL + " Crear paso", description = "Anade un paso a un producto")
+    public ResponseEntity<ProductsAdminDTO.ProductStepDTO> addStep(@PathVariable UUID productId, @Valid @RequestBody ProductsAdminDTO.CreateProductStepDTO createDTO) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(manageProductStepsService.addStep(productId, createDTO));
     }
 
-    /**
-     * Añade múltiples pasos a un producto en una sola operación (batch)
-     * Esto asegura que los pasos tengan la numeración correcta: Paso 1, Paso 2, Paso 3, etc.
-     */
     @PostMapping("/{productId}/steps/batch")
-    public ResponseEntity<List<ProductsAdminDTO.ProductStepDTO>> addMultipleSteps(
-            @PathVariable UUID productId,
-            @Valid @RequestBody List<ProductsAdminDTO.CreateProductStepDTO> stepsDTO) {
-        List<ProductsAdminDTO.ProductStepDTO> steps =
-                manageProductStepsService.addMultipleSteps(productId, stepsDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(steps);
+    @Operation(summary = SwaggerTags.Products.EMOJI_GENERAL + " Crear multiples pasos", description = "Anade multiples pasos a un producto en una sola operacion")
+    public ResponseEntity<List<ProductsAdminDTO.ProductStepDTO>> addMultipleSteps(@PathVariable UUID productId, @Valid @RequestBody List<ProductsAdminDTO.CreateProductStepDTO> stepsDTO) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(manageProductStepsService.addMultipleSteps(productId, stepsDTO));
     }
 
-    /**
-     * Actualiza un paso
-     */
     @PutMapping("/{productId}/steps/{stepId}")
-    public ResponseEntity<ProductsAdminDTO.ProductStepDTO> updateStep(
-            @PathVariable UUID productId,
-            @PathVariable UUID stepId,
-            @Valid @RequestBody ProductsAdminDTO.UpdateProductStepDTO updateDTO) {
-        ProductsAdminDTO.ProductStepDTO step =
-                manageProductStepsService.updateStep(stepId, updateDTO);
-        return ResponseEntity.ok(step);
+    @Operation(summary = SwaggerTags.Products.EMOJI_GENERAL + " Actualizar paso", description = "Actualiza un paso existente")
+    public ResponseEntity<ProductsAdminDTO.ProductStepDTO> updateStep(@PathVariable UUID productId, @PathVariable UUID stepId, @Valid @RequestBody ProductsAdminDTO.UpdateProductStepDTO updateDTO) {
+        return ResponseEntity.ok(manageProductStepsService.updateStep(stepId, updateDTO));
     }
 
-    /**
-     * Activa o desactiva un paso
-     */
     @PatchMapping("/{productId}/steps/{stepId}/status")
-    public ResponseEntity<ProductsAdminDTO.ProductStepDTO> toggleStepStatus(
-            @PathVariable UUID productId,
-            @PathVariable UUID stepId,
-            @RequestParam Boolean isActive) {
-        ProductsAdminDTO.ProductStepDTO step =
-                manageProductStepsService.toggleStepStatus(stepId, isActive);
-        return ResponseEntity.ok(step);
+    @Operation(summary = SwaggerTags.Products.EMOJI_GENERAL + " Cambiar estado del paso", description = "Activa o desactiva un paso")
+    public ResponseEntity<ProductsAdminDTO.ProductStepDTO> toggleStepStatus(@PathVariable UUID productId, @PathVariable UUID stepId, @RequestParam Boolean isActive) {
+        return ResponseEntity.ok(manageProductStepsService.toggleStepStatus(stepId, isActive));
     }
 
-    /**
-     * Elimina un paso
-     */
     @DeleteMapping("/{productId}/steps/{stepId}")
-    public ResponseEntity<Void> deleteStep(
-            @PathVariable UUID productId,
-            @PathVariable UUID stepId) {
+    @Operation(summary = SwaggerTags.Products.EMOJI_GENERAL + " Eliminar paso", description = "Elimina un paso de un producto")
+    public ResponseEntity<Void> deleteStep(@PathVariable UUID productId, @PathVariable UUID stepId) {
         manageProductStepsService.deleteStep(stepId);
         return ResponseEntity.noContent().build();
     }

@@ -1,19 +1,26 @@
 package com.elsalvador.coopac.dto.publicpage.site;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.ZonedDateTime;
 
 /**
  * DTO para la configuración global del sitio web.
+ * Contiene información de la empresa, contacto, redes sociales y fecha de última actualización.
  *
- * @param company información de la empresa
- * @param contact datos de contacto principales
- * @param social redes sociales
- * @param updatedAt última actualización de la configuración
+ * @param company Información de la empresa
+ * @param contact Datos de contacto principales
+ * @param social Enlaces a redes sociales
+ * @param updatedAt Fecha y hora de última actualización de la configuración
  */
+@Schema(description = "Configuración global del sitio web incluyendo empresa, contacto y redes sociales")
 public record SiteSettingsDTO(
+    @Schema(description = "Información de la empresa")
     CompanyDTO company,
+    @Schema(description = "Datos de contacto principales")
     ContactDTO contact,
+    @Schema(description = "Enlaces a redes sociales")
     SocialDTO social,
+    @Schema(description = "Fecha y hora de última actualización de la configuración")
     ZonedDateTime updatedAt
 ) {
 
@@ -27,8 +34,11 @@ public record SiteSettingsDTO(
     /**
      * Información básica de la empresa.
      */
+    @Schema(description = "Información básica de la empresa")
     public record CompanyDTO(
+        @Schema(description = "Nombre legal de la empresa", example = "COOPERATIVA DE AHORRO Y CREDITO \"EL SALVADOR\" LTDA.")
         String name,
+        @Schema(description = "Logo de la empresa con URL y texto alternativo")
         LogoDTO logo
     ) {
         public CompanyDTO {
@@ -44,8 +54,11 @@ public record SiteSettingsDTO(
     /**
      * Información del logo de la empresa.
      */
+    @Schema(description = "Información del logo de la empresa")
     public record LogoDTO(
+        @Schema(description = "URL del logo (debe ser HTTPS)", example = "https://cdn.example.com/brand/logo.svg")
         String url,
+        @Schema(description = "Texto alternativo del logo para accesibilidad", example = "COOPAC El Salvador")
         String alt
     ) {
         public LogoDTO {

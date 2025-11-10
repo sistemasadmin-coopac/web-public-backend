@@ -1,87 +1,97 @@
 package com.elsalvador.coopac.controller.admin.home;
 
+import com.elsalvador.coopac.config.SwaggerTags;
 import com.elsalvador.coopac.dto.admin.HomeStatsSectionDTO;
-import com.elsalvador.coopac.service.admin.home.GetHomePromotionsService;
+import com.elsalvador.coopac.dto.response.ErrorResponseDTO;
+import com.elsalvador.coopac.service.admin.home.GetHomeStatsSectionService;
+import com.elsalvador.coopac.service.admin.home.UpdateHomeStatsSectionService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/admin/home-stats-section")
 @RequiredArgsConstructor
-@Slf4j
+@Tag(
+    name = SwaggerTags.Home.TAG_NAME,
+    description = SwaggerTags.Home.TAG_DESCRIPTION
+)
 public class HomeStatsSectionController {
 
-    private final GetHomePromotionsService.HomeStatsSectionService homeStatsSectionService;
+    private final GetHomeStatsSectionService getService;
+    private final UpdateHomeStatsSectionService updateService;
 
-    /**
-     * Obtiene todas las secciones de estadísticas
-     */
-    @GetMapping
-    public ResponseEntity<List<HomeStatsSectionDTO>> getAllSections() {
-        log.debug("GET /api/admin/home-stats-section - Obteniendo todas las secciones");
-        List<HomeStatsSectionDTO> sections = homeStatsSectionService.getAllSections();
-        return ResponseEntity.ok(sections);
-    }
-
-    /**
-     * Obtiene la sección activa
-     */
     @GetMapping("/active")
-    public ResponseEntity<HomeStatsSectionDTO> getActiveSection() {
-        log.debug("GET /api/admin/home-stats-section/active - Obteniendo sección activa");
-        HomeStatsSectionDTO section = homeStatsSectionService.getActiveSection();
-        if (section != null) {
-            return ResponseEntity.ok(section);
-        }
-        return ResponseEntity.noContent().build();
-    }
-
-    /**
-     * Obtiene una sección por ID
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<HomeStatsSectionDTO> getSectionById(@PathVariable UUID id) {
-        log.debug("GET /api/admin/home-stats-section/{} - Obteniendo sección por ID", id);
-        HomeStatsSectionDTO section = homeStatsSectionService.getSectionById(id);
+    @Operation(
+        summary = SwaggerTags.Home.EMOJI_STATS + " Obtener sección activa de estadísticas",
+        description = "Obtiene la configuración de la sección de estadísticas que está activa"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Sección obtenida exitosamente"),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Error interno del servidor",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponseDTO.class)
+            )
+        )
+    })
+    public ResponseEntity<HomeStatsSectionDTO> getActiveStatsSection() {
+        HomeStatsSectionDTO section = getService.getActiveStatsSection();
         return ResponseEntity.ok(section);
     }
 
-    /**
-     * Crea una nueva sección de estadísticas
-     */
-    @PostMapping
-    public ResponseEntity<HomeStatsSectionDTO> createSection(@Valid @RequestBody HomeStatsSectionDTO dto) {
-        log.debug("POST /api/admin/home-stats-section - Creando nueva sección");
-        HomeStatsSectionDTO createdSection = homeStatsSectionService.createSection(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdSection);
-    }
-
-    /**
-     * Actualiza una sección existente
-     */
-    @PutMapping("/{id}")
-    public ResponseEntity<HomeStatsSectionDTO> updateSection(
-            @PathVariable UUID id,
-            @Valid @RequestBody HomeStatsSectionDTO dto) {
-        log.debug("PUT /api/admin/home-stats-section/{} - Actualizando sección", id);
-        HomeStatsSectionDTO updatedSection = homeStatsSectionService.updateSection(id, dto);
+    @PutMapping
+    @Operation(
+        summary = SwaggerTags.Home.EMOJI_STATS + " Actualizar sección de estadísticas",
+        description = "Actualiza la configuración de la sección de estadísticas"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Sección actualizada exitosamente"),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Datos inválidos",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponseDTO.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "No autenticado",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponseDTO.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "No autorizado (requiere rol ADMIN)",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponseDTO.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Error interno del servidor",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponseDTO.class)
+            )
+        )
+    })
+    public ResponseEntity<HomeStatsSectionDTO> updateStatsSection(
+            @Valid @RequestBody HomeStatsSectionDTO sectionDTO) {
+        HomeStatsSectionDTO updatedSection = updateService.updateStatsSection(sectionDTO);
         return ResponseEntity.ok(updatedSection);
-    }
-
-    /**
-     * Elimina una sección de estadísticas
-     */
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteSection(@PathVariable UUID id) {
-        log.debug("DELETE /api/admin/home-stats-section/{} - Eliminando sección", id);
-        homeStatsSectionService.deleteSection(id);
-        return ResponseEntity.noContent().build();
     }
 }

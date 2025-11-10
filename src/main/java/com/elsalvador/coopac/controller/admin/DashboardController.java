@@ -1,5 +1,13 @@
 package com.elsalvador.coopac.controller.admin;
 
+import com.elsalvador.coopac.config.SwaggerTags;
+import com.elsalvador.coopac.dto.response.ErrorResponseDTO;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,18 +18,22 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Controlador de ejemplo para endpoints del dashboard
- */
 @Slf4j
 @RestController
 @RequestMapping("/api/admin/dashboard")
+@Tag(name = SwaggerTags.Dashboard.TAG_NAME, description = SwaggerTags.Dashboard.TAG_DESCRIPTION)
 public class DashboardController {
 
-    /**
-     * Endpoint de ejemplo del dashboard
-     */
     @GetMapping
+    @Operation(
+        summary = SwaggerTags.Dashboard.EMOJI_STATS + " Obtener datos del dashboard",
+        description = "Obtiene estadisticas y metricas del panel de administracion"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Datos del dashboard obtenidos exitosamente"),
+        @ApiResponse(responseCode = "401", description = "No autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponseDTO.class))),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponseDTO.class)))
+    })
     public ResponseEntity<Map<String, Object>> getDashboardData() {
         log.info("Acceso al dashboard en {}", Instant.now());
 
@@ -40,3 +52,5 @@ public class DashboardController {
         return ResponseEntity.ok(response);
     }
 }
+
+
